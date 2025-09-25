@@ -40,6 +40,7 @@ from sentry.models.projectkey import ProjectKey
 from sentry.models.release import Release
 from sentry.models.releases.release_project import ReleaseProject
 from sentry.net.http import connection_from_url
+from sentry.services.eventstore.query_preprocessing import get_all_merged_group_ids
 from sentry.snuba.dataset import Dataset
 from sentry.snuba.events import Columns
 from sentry.snuba.query_sources import QuerySource
@@ -921,6 +922,27 @@ class SnubaQueryParams:
         self.referrer = referrer
         self.is_grouprelease = is_grouprelease
         self.kwargs = kwargs
+
+        # Groups can be merged together, but snuba is immutable(ish). In order to
+        # account for merges, here we expand queries to include all group IDs that have
+        # been merged together.
+        # TODO: Gate behind feature flag
+        if "group_id" in self.filter_keys:
+            self.filter_keys["group_id"] = get_all_merged_group_ids(self.filter_keys["group_id"])
+        for i in range(len(self.conditions)):
+            triple = self.conditions[i]
+            if triple[0] == "group_id":
+                if triple[1] in {"IN", "NOT IN"}:
+                    self.conditions[i] = [
+                        "group_id",
+                        triple[1],
+                        get_all_merged_group_ids(triple[2]),
+                    ]
+                    continue
+                elif triple[1] in {"=", "!="}:
+                    op = "IN" if triple[1] == "=" else "NOT IN"
+                    self.conditions[i] = ["group_id", op, get_all_merged_group_ids([triple[2]])]
+                    continue
 
 
 def raw_query(
