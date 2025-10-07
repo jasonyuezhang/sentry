@@ -23,6 +23,7 @@ import {useCreateProjectAndRules} from 'sentry/components/onboarding/useCreatePr
 import PlatformPicker, {type Platform} from 'sentry/components/platformPicker';
 import TeamSelector from 'sentry/components/teamSelector';
 import {categoryList} from 'sentry/data/platformPickerCategories';
+import {otherPlatform} from 'sentry/data/platforms';
 import {t, tct} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
 import type {IssueAlertRule} from 'sentry/types/alerts';
@@ -58,7 +59,7 @@ import {makeProjectsPathname} from 'sentry/views/projects/pathname';
 type FormData = {
   projectName: string;
   alertRule?: Partial<AlertRuleOptions>;
-  platform?: Partial<OnboardingSelectedSDK>;
+  platform?: OnboardingSelectedSDK;
   team?: string;
 };
 
@@ -68,12 +69,6 @@ type CreatedProject = Pick<Project, 'name' | 'id'> & {
   notificationRule?: IssueAlertRule;
   team?: string;
 };
-
-function isNotPartialPlatform(
-  platform: Partial<OnboardingSelectedSDK> | undefined
-): platform is OnboardingSelectedSDK {
-  return !!platform?.key;
-}
 
 function getMissingValues({
   team,
@@ -250,14 +245,9 @@ export function CreateProject() {
       team,
       alertRule,
     }: {selectedFramework?: OnboardingSelectedSDK} & Omit<FormData, 'platform'> & {
-        platform: OnboardingSelectedSDK;
+        platform?: OnboardingSelectedSDK;
       }) => {
       const selectedPlatform = selectedFramework ?? platform;
-
-      if (!selectedPlatform) {
-        addErrorMessage(t('Please select a platform in Step 1'));
-        return;
-      }
 
       let projectToRollback: Project | undefined;
 
@@ -272,6 +262,11 @@ export function CreateProject() {
           });
         projectToRollback = project;
 
+        const projectPlatform = selectedPlatform ?? {
+          ...otherPlatform,
+          key: otherPlatform.id,
+        };
+
         trackAnalytics('project_creation_page.created', {
           organization,
           issue_alert: alertRuleConfig.shouldCreateCustomRule
@@ -280,7 +275,7 @@ export function CreateProject() {
               ? 'No Rule'
               : 'Default',
           project_id: project.id,
-          platform: selectedPlatform.key,
+          platform: projectPlatform.key,
           rule_ids: ruleIds,
         });
 
@@ -298,7 +293,7 @@ export function CreateProject() {
           id: project.id,
           name: project.name,
           team: project.team?.slug,
-          platform: selectedPlatform,
+          platform: projectPlatform,
           alertRule,
           notificationRule,
         });
@@ -372,21 +367,14 @@ export function CreateProject() {
   );
 
   const handleProjectCreation = useCallback(
-    async (data: FormData) => {
-      const selectedPlatform = data.platform;
-
-      if (!isNotPartialPlatform(selectedPlatform)) {
-        addErrorMessage(t('Please select a platform in Step 1'));
-        return;
-      }
-
+    async ({platform, ...data}: FormData) => {
       if (
-        selectedPlatform.type !== 'language' ||
+        platform?.type !== 'language' ||
         !Object.values(SupportedLanguages).includes(
-          selectedPlatform.language as SupportedLanguages
+          platform?.language as SupportedLanguages
         )
       ) {
-        configurePlatform({...data, platform: selectedPlatform});
+        configurePlatform({...data, platform});
         return;
       }
 
@@ -399,11 +387,11 @@ export function CreateProject() {
           <FrameworkSuggestionModal
             {...deps}
             organization={organization}
-            selectedPlatform={selectedPlatform}
+            selectedPlatform={platform}
             onConfigure={selectedFramework => {
-              configurePlatform({...data, platform: selectedPlatform, selectedFramework});
+              configurePlatform({...data, platform, selectedFramework});
             }}
-            onSkip={() => configurePlatform({...data, platform: selectedPlatform})}
+            onSkip={() => configurePlatform({...data, platform})}
           />
         ),
         {
@@ -412,7 +400,7 @@ export function CreateProject() {
             trackAnalytics(
               'project_creation.select_framework_modal_close_button_clicked',
               {
-                platform: selectedPlatform.key,
+                platform: platform.key,
                 organization,
               }
             );

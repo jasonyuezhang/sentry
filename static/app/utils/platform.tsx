@@ -1,4 +1,3 @@
-import type {Platform} from 'sentry/components/platformPicker';
 import {
   backend,
   desktop,
@@ -8,7 +7,7 @@ import {
   PlatformCategory,
   serverless,
 } from 'sentry/data/platformCategories';
-import type {PlatformKey} from 'sentry/types/project';
+import type {PlatformIntegration, PlatformKey} from 'sentry/types/project';
 
 /**
  *
@@ -72,7 +71,7 @@ export function isDisabledGamingPlatform({
   platform,
   enabledConsolePlatforms,
 }: {
-  platform: Platform;
+  platform: PlatformIntegration;
   enabledConsolePlatforms?: string[];
 }) {
   return platform.type === 'console' && !enabledConsolePlatforms?.includes(platform.id);
