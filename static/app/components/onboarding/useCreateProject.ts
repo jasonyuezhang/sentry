@@ -7,10 +7,13 @@ import useApi from 'sentry/utils/useApi';
 import useOrganization from 'sentry/utils/useOrganization';
 
 interface Variables {
-  platform: OnboardingSelectedSDK;
   default_rules?: boolean;
   firstTeamSlug?: string;
   name?: string;
+  /**
+   * If no platform is provided, the project will be created with the 'other' platform
+   */
+  platform?: OnboardingSelectedSDK;
 }
 
 export function useCreateProject() {
@@ -26,7 +29,7 @@ export function useCreateProject() {
         {
           method: 'POST',
           data: {
-            platform: platform.key,
+            platform: platform?.key,
             name,
             default_rules: default_rules ?? true,
             origin: 'ui',

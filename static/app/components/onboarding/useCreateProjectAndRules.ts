@@ -16,8 +16,8 @@ type Variables = {
   createNotificationAction: ReturnType<
     typeof useCreateNotificationAction
   >['createNotificationAction'];
-  platform: OnboardingSelectedSDK;
   projectName: string;
+  platform?: OnboardingSelectedSDK;
   team?: string;
 };
 

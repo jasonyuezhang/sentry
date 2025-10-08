@@ -109,8 +109,8 @@ export interface UpdatedTask extends Partial<Pick<OnboardingTask, 'status' | 'da
 
 export interface OnboardingSelectedSDK
   extends Pick<PlatformIntegration, 'language' | 'link' | 'name' | 'type'> {
-  category: Category;
   key: PlatformKey;
+  category?: Category;
 }
 
 export type OnboardingRecentCreatedProject = {

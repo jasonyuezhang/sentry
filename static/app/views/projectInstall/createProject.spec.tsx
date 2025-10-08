@@ -455,5 +455,27 @@ describe('CreateProject', () => {
         })
       );
     });
+
+    it("should create 'other' platform if no platform is selected", async () => {
+      const {projectCreationMockRequest} = renderFrameworkModalMockRequests({
+        organization,
+        teamSlug: teamWithAccess.slug,
+      });
+      render(<CreateProject />, {organization});
+      expect(screen.getByRole('button', {name: 'Create Project'})).toBeDisabled();
+      await userEvent.type(screen.getByPlaceholderText('project-name'), 'my-project');
+      expect(screen.getByRole('button', {name: 'Create Project'})).toBeEnabled();
+      await userEvent.click(screen.getByRole('button', {name: 'Create Project'}));
+      expect(projectCreationMockRequest).toHaveBeenCalledWith(
+        `/teams/${organization.slug}/${teamWithAccess.slug}/projects/`,
+        expect.objectContaining({
+          data: {
+            default_rules: true,
+            name: 'my-project',
+            origin: 'ui',
+          },
+        })
+      );
+    });
   });
 });
