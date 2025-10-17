@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import styled from '@emotion/styled';
 
 import {Button} from 'sentry/components/core/button';
@@ -21,60 +21,110 @@ interface Props {
   totalFingerprint: number;
 }
 
+interface UnmergeState {
+  busy?: boolean;
+  checked?: boolean;
+  collapsed?: boolean;
+}
+
+interface GroupingStoreData {
+  unmergeState?: Map<string, UnmergeState>;
+}
+
 function MergedItem({fingerprint, totalFingerprint}: Props) {
   const organization = useOrganization();
   const location = useLocation();
   const [busy, setBusy] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function onGroupChange({unmergeState}: any) {
-    if (!unmergeState) {
+  // Validate required props
+  if (!fingerprint?.id) {
+    console.error('MergedItem: Invalid fingerprint provided', fingerprint);
+    return null;
+  }
+
+  if (typeof totalFingerprint !== 'number' || totalFingerprint < 0) {
+    console.error('MergedItem: Invalid totalFingerprint provided', totalFingerprint);
+    return null;
+  }
+
+  const onGroupChange = useCallback(({unmergeState}: GroupingStoreData) => {
+    if (!unmergeState || !fingerprint?.id) {
       return;
     }
 
-    const stateForId = unmergeState.has(fingerprint.id)
-      ? unmergeState.get(fingerprint.id)
-      : undefined;
-
-    if (!stateForId) {
-      return;
-    }
-
-    Object.keys(stateForId).forEach(key => {
-      if (key === 'collapsed') {
-        setCollapsed(Boolean(stateForId[key]));
-      } else if (key === 'checked') {
-        setChecked(Boolean(stateForId[key]));
-      } else if (key === 'busy') {
-        setBusy(Boolean(stateForId[key]));
+    try {
+      const stateForId = unmergeState.get(fingerprint.id);
+      if (!stateForId) {
+        return;
       }
-    });
-  }
 
-  function handleToggleEvents() {
-    GroupingStore.onToggleCollapseFingerprint(fingerprint.id);
-  }
+      // Safely update state with validation
+      if (typeof stateForId.collapsed === 'boolean') {
+        setCollapsed(stateForId.collapsed);
+      }
+      if (typeof stateForId.checked === 'boolean') {
+        setChecked(stateForId.checked);
+      }
+      if (typeof stateForId.busy === 'boolean') {
+        setBusy(stateForId.busy);
+      }
+    } catch (err) {
+      console.error('Error updating group state:', err);
+      setError('Failed to update group state');
+    }
+  }, [fingerprint?.id]);
 
-  function handleToggle() {
-    const {latestEvent} = fingerprint;
+  const handleToggleEvents = useCallback(() => {
+    if (!fingerprint?.id) {
+      console.error('Cannot toggle events: invalid fingerprint ID');
+      return;
+    }
+
+    try {
+      GroupingStore.onToggleCollapseFingerprint(fingerprint.id);
+    } catch (err) {
+      console.error('Error toggling events:', err);
+      setError('Failed to toggle events');
+    }
+  }, [fingerprint?.id]);
+
+  const handleToggle = useCallback(() => {
+    if (!fingerprint?.id || !fingerprint?.latestEvent?.id) {
+      console.error('Cannot toggle: missing required data', {
+        fingerprintId: fingerprint?.id,
+        eventId: fingerprint?.latestEvent?.id,
+      });
+      return;
+    }
 
     if (busy) {
       return;
     }
 
-    // clicking anywhere in the row will toggle the checkbox
-    GroupingStore.onToggleUnmerge([fingerprint.id, latestEvent.id]);
-  }
+    try {
+      // clicking anywhere in the row will toggle the checkbox
+      GroupingStore.onToggleUnmerge([fingerprint.id, fingerprint.latestEvent.id]);
+    } catch (err) {
+      console.error('Error toggling unmerge:', err);
+      setError('Failed to toggle selection');
+    }
+  }, [fingerprint?.id, fingerprint?.latestEvent?.id, busy]);
 
-  function handleCheckClick() {
+  const handleCheckClick = useCallback(() => {
     // noop because of react warning about being a controlled input without `onChange`
     // we handle change via row click
-  }
+  }, []);
 
-  function renderFingerprint(id: string, label?: string) {
+  const renderFingerprint = useCallback((id: string, label?: string) => {
+    if (!id) {
+      return <span>{t('Unknown fingerprint')}</span>;
+    }
+
     if (!label) {
-      return id;
+      return <code>{id}</code>;
     }
 
     return (
@@ -82,42 +132,74 @@ function MergedItem({fingerprint, totalFingerprint}: Props) {
         <code>{label}</code>
       </Tooltip>
     );
-  }
+  }, []);
 
   useEffect(() => {
-    const teardown = GroupingStore.listen((data: any) => onGroupChange(data), undefined);
+    if (!fingerprint?.id) {
+      return;
+    }
+
+    const teardown = GroupingStore.listen(onGroupChange, undefined);
     return () => {
       teardown();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onGroupChange, fingerprint?.id]);
 
-  const {latestEvent, id, label} = fingerprint;
+  // Memoize computed values to prevent unnecessary re-renders
+  const {latestEvent, id, label, mergedBySeer} = fingerprint;
   const checkboxDisabled = busy || totalFingerprint === 1;
 
-  const issueLink = latestEvent
-    ? createIssueLink({
+  const issueLink = useMemo(() => {
+    if (!latestEvent?.id || !organization) {
+      return null;
+    }
+
+    try {
+      return createIssueLink({
         organization,
         location,
         data: latestEvent,
         eventId: latestEvent.id,
         referrer: 'merged-item',
-      })
-    : null;
+      });
+    } catch (err) {
+      console.error('Error creating issue link:', err);
+      return null;
+    }
+  }, [latestEvent, organization, location]);
+
+  const tooltipTitle = useMemo(() => {
+    if (checkboxDisabled && totalFingerprint === 1) {
+      return t('To check, the list must contain 2 or more items');
+    }
+    return undefined;
+  }, [checkboxDisabled, totalFingerprint]);
+
+  const ariaLabel = useMemo(() => {
+    if (!id) return '';
+    return collapsed ? t('Show %s fingerprints', id) : t('Collapse %s fingerprints', id);
+  }, [collapsed, id]);
+
+  // Early return for error state
+  if (error) {
+    return (
+      <MergedGroup busy={false}>
+        <Controls expanded={true}>
+          <Text color="errorText">{error}</Text>
+        </Controls>
+      </MergedGroup>
+    );
+  }
 
   // `latestEvent` can be null if last event w/ fingerprint is not within retention period
   return (
     <MergedGroup busy={busy}>
       <Controls expanded={!collapsed}>
-        <FingerprintLabel onClick={handleToggle}>
+        <FingerprintLabel onClick={handleToggle} role="button" tabIndex={0}>
           <Tooltip
             containerDisplayMode="flex"
             disabled={!checkboxDisabled}
-            title={
-              checkboxDisabled && totalFingerprint === 1
-                ? t('To check, the list must contain 2 or more items')
-                : undefined
-            }
+            title={tooltipTitle}
           >
             <Checkbox
               value={id}
@@ -125,26 +207,26 @@ function MergedItem({fingerprint, totalFingerprint}: Props) {
               disabled={checkboxDisabled}
               onChange={handleCheckClick}
               size="xs"
+              aria-label={checked ? t('Uncheck fingerprint') : t('Check fingerprint')}
             />
           </Tooltip>
           {renderFingerprint(id, label)}
-          {fingerprint.mergedBySeer && ' (merged by Sentry)'}
+          {mergedBySeer && ' (merged by Seer)'}
         </FingerprintLabel>
 
         <Button
-          aria-label={
-            collapsed ? t('Show %s fingerprints', id) : t('Collapse %s fingerprints', id)
-          }
+          aria-label={ariaLabel}
           size="zero"
           borderless
           icon={<IconChevron direction={collapsed ? 'down' : 'up'} size="xs" />}
           onClick={handleToggleEvents}
+          disabled={busy}
         />
       </Controls>
 
       {!collapsed && (
         <MergedEventList>
-          {issueLink ? (
+          {issueLink && latestEvent ? (
             <Flex align="center" gap="xs">
               <LinkButton
                 to={issueLink}
@@ -157,11 +239,23 @@ function MergedItem({fingerprint, totalFingerprint}: Props) {
               />
               <EventDetails>
                 <Text size="md" data-issue-title-primary>
-                  {latestEvent.title}
+                  {latestEvent.title || t('Untitled event')}
                 </Text>
               </EventDetails>
             </Flex>
-          ) : null}
+          ) : latestEvent ? (
+            <EventDetails>
+              <Text size="md" color="subText">
+                {t('Event not available for linking')}
+              </Text>
+            </EventDetails>
+          ) : (
+            <EventDetails>
+              <Text size="md" color="subText">
+                {t('No recent events available')}
+              </Text>
+            </EventDetails>
+          )}
         </MergedEventList>
       )}
     </MergedGroup>
