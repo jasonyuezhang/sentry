@@ -29,6 +29,7 @@ class BuildDetailsAppInfo(BaseModel):
     platform: Platform | None = None
     is_installable: bool
     build_configuration: str | None = None
+    app_icon_id: str | None = None
 
 
 class BuildDetailsVcsInfo(BaseModel):
@@ -152,6 +153,7 @@ def transform_preprod_artifact_to_build_details(
         build_configuration=(
             artifact.build_configuration.name if artifact.build_configuration else None
         ),
+        app_icon_id=artifact.app_icon_id,
     )
 
     vcs_info = BuildDetailsVcsInfo(
