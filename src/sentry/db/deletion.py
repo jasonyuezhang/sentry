@@ -9,6 +9,7 @@ from django.db import connections, router
 from django.db.models import QuerySet
 from django.utils import timezone
 
+from sentry.db.postgres.transactions import unset_statement_timeout
 from sentry.utils.query import RangeQuerySetWrapper
 
 if TYPE_CHECKING:
@@ -125,5 +126,7 @@ class BulkDeleteQuery:
             query_timeout_retries=10,
         )
 
-        for batch in itertools.batched(wrapper, chunk_size):
-            yield tuple(item[0] for item in batch)
+        # Disable statement_timeout for long-running cleanup queries
+        with unset_statement_timeout(self.using):
+            for batch in itertools.batched(wrapper, chunk_size):
+                yield tuple(item[0] for item in batch)
