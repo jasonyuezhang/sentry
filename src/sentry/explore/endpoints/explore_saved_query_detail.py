@@ -180,15 +180,16 @@ class ExploreSavedQueryVisitEndpoint(ExploreSavedQueryBase):
         if not self.has_feature(organization, request):
             return self.respond(status=404)
 
+        now = timezone.now()
         query.visits = F("visits") + 1
-        query.last_visited = timezone.now()
+        query.last_visited = now
         query.save(update_fields=["visits", "last_visited"])
 
         ExploreSavedQueryLastVisited.objects.create_or_update(
             organization=organization,
             user_id=request.user.id,
             explore_saved_query=query,
-            values={"last_visited": timezone.now()},
+            values={"last_visited": now},
         )
 
         return Response(status=204)

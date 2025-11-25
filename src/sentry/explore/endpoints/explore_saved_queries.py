@@ -1,8 +1,21 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import sentry_sdk
 from django.db import router, transaction
-from django.db.models import Case, Count, Exists, F, IntegerField, OrderBy, OuterRef, Subquery, When
+from django.db.models import (
+    Case,
+    Count,
+    Exists,
+    F,
+    IntegerField,
+    OrderBy,
+    OuterRef,
+    QuerySet,
+    Subquery,
+    When,
+)
 from drf_spectacular.utils import extend_schema
 from rest_framework.exceptions import ParseError
 from rest_framework.request import Request
@@ -161,6 +174,11 @@ PREBUILT_SAVED_QUERIES = [
     },
 ]
 
+SortHandler = Callable[
+    [QuerySet[ExploreSavedQuery], bool],
+    tuple[QuerySet[ExploreSavedQuery], list[OrderBy | Case | str]],
+]
+
 
 def sync_prebuilt_queries(organization):
     """
@@ -170,12 +188,16 @@ def sync_prebuilt_queries(organization):
     prebuilt_version column.
     """
     with transaction.atomic(router.db_for_write(ExploreSavedQuery)):
-        saved_prebuilt_queries = ExploreSavedQuery.objects.filter(
-            organization=organization,
-            prebuilt_id__isnull=False,
+        saved_prebuilt_queries = list(
+            ExploreSavedQuery.objects.filter(
+                organization=organization,
+                prebuilt_id__isnull=False,
+            )
         )
-
-        saved_prebuilt_query_ids = set(saved_prebuilt_queries.values_list("prebuilt_id", flat=True))
+        saved_prebuilt_queries_by_id = {
+            query.prebuilt_id: query for query in saved_prebuilt_queries if query.prebuilt_id
+        }
+        saved_prebuilt_query_ids = set(saved_prebuilt_queries_by_id)
 
         # Create prebuilt queries if they don't exist, or update them if they are outdated
         queries_to_create = []
@@ -203,10 +225,9 @@ def sync_prebuilt_queries(organization):
                 }
             else:
                 continue
-            if prebuilt_query["prebuilt_id"] in saved_prebuilt_query_ids:
-                saved_prebuilt_query = saved_prebuilt_queries.get(
-                    prebuilt_id=prebuilt_query["prebuilt_id"]  # type: ignore[misc]
-                )
+            if saved_prebuilt_query := saved_prebuilt_queries_by_id.get(
+                prebuilt_query["prebuilt_id"]
+            ):
                 if prebuilt_query["prebuilt_version"] > saved_prebuilt_query.prebuilt_version:
                     queries_to_update.append(
                         ExploreSavedQuery(
@@ -225,12 +246,9 @@ def sync_prebuilt_queries(organization):
             )
 
         # Delete old prebuilt queries if they should no longer exist
-        queries_to_delete = []
-        for saved_prebuilt_query_id in saved_prebuilt_query_ids:
-            if saved_prebuilt_query_id not in [
-                prebuilt_query["prebuilt_id"] for prebuilt_query in PREBUILT_SAVED_QUERIES
-            ]:
-                queries_to_delete.append(saved_prebuilt_query_id)
+        queries_to_delete = saved_prebuilt_query_ids - {
+            prebuilt_query["prebuilt_id"] for prebuilt_query in PREBUILT_SAVED_QUERIES
+        }
         if queries_to_delete:
             ExploreSavedQuery.objects.filter(
                 organization=organization, prebuilt_id__in=queries_to_delete
@@ -243,7 +261,7 @@ def sync_prebuilt_queries_starred(organization, user_id):
     This ensures that prebuilt queries are starred by default for all users.
     """
     with transaction.atomic(router.db_for_write(ExploreSavedQueryStarred)):
-        prebuilt_query_ids_without_starred_status = (
+        prebuilt_queries_without_starred_status = list(
             ExploreSavedQuery.objects.filter(
                 organization=organization,
                 prebuilt_id__isnull=False,
@@ -255,12 +273,12 @@ def sync_prebuilt_queries_starred(organization, user_id):
                 ).values_list("explore_saved_query_id", flat=True)
             )
             .order_by("prebuilt_id")  # Ensures prebuilt queries are starred in the correct order
-            .values_list("id", flat=True)
         )
-        for prebuilt_query_id in prebuilt_query_ids_without_starred_status:
+
+        for prebuilt_query in prebuilt_queries_without_starred_status:
             # Not using bulk_create because we need to handle position with insert_starred_query
             ExploreSavedQueryStarred.objects.insert_starred_query(
-                organization, user_id, ExploreSavedQuery.objects.get(id=prebuilt_query_id)
+                organization, user_id, prebuilt_query
             )
 
 
@@ -274,10 +292,87 @@ class ExploreSavedQueriesEndpoint(OrganizationEndpoint):
     owner = ApiOwner.EXPLORE
     permission_classes = (ExploreSavedQueryPermission,)
 
-    def has_feature(self, organization, request):
+    def has_feature(self, organization: Organization, request: Request) -> bool:
         return features.has(
             "organizations:visibility-explore-view", organization, actor=request.user
         )
+
+    def _check_access(self, request: Request, organization: Organization) -> Response | None:
+        if not request.user.is_authenticated:
+            return Response(status=400)
+
+        if not self.has_feature(organization, request):
+            return self.respond(status=404)
+
+        return None
+
+    def _get_sort_handlers(self, request: Request) -> dict[str, SortHandler]:
+        return {
+            "name": lambda queryset, desc: (queryset, ["-lower_name" if desc else "lower_name"]),
+            "dateAdded": lambda queryset, desc: (queryset, ["-date_added" if desc else "date_added"]),
+            "dateUpdated": lambda queryset, desc: (queryset, ["-date_updated" if desc else "date_updated"]),
+            "mostPopular": lambda queryset, desc: (queryset, ["visits" if desc else "-visits"]),
+            "recentlyViewed": lambda queryset, desc: (
+                queryset,
+                [
+                    F("user_last_visited").asc(nulls_last=True)
+                    if desc
+                    else F("user_last_visited").desc(nulls_last=True)
+                ],
+            ),
+            "myqueries": lambda queryset, desc: (
+                queryset,
+                [
+                    Case(
+                        When(created_by_id=request.user.id, then=-1),
+                        default="created_by_id",
+                        output_field=IntegerField(),
+                    ),
+                ],
+            ),
+            "mostStarred": lambda queryset, desc: (
+                queryset.annotate(starred_count=Count("exploresavedquerystarred")),
+                ["-starred_count"],
+            ),
+            "starred": lambda queryset, desc: (
+                queryset.annotate(
+                    is_starred=Exists(
+                        ExploreSavedQueryStarred.objects.filter(
+                            explore_saved_query_id=OuterRef("id"),
+                            user_id=request.user.id,
+                            starred=True,
+                        )
+                    )
+                ),
+                ["-is_starred"],
+            ),
+        }
+
+    def _apply_sorting(
+        self, queryset: QuerySet[ExploreSavedQuery], sort_by_list: list[str], request: Request
+    ) -> tuple[QuerySet[ExploreSavedQuery], list[OrderBy | Case | str]]:
+        order_by: list[OrderBy | Case | str] = []
+        handlers = self._get_sort_handlers(request)
+
+        for sort_by in sort_by_list:
+            desc = sort_by.startswith("-")
+            sort_key = sort_by[1:] if desc else sort_by
+
+            handler = handlers.get(sort_key)
+            if not handler:
+                continue
+
+            queryset, new_orderings = handler(queryset, desc)
+            order_by.extend(new_orderings)
+
+        if not order_by:
+            order_by.append("lower_name")
+
+        # Finally we always at least secondarily sort by dateAdded
+        if "dateAdded" not in sort_by_list and "-dateAdded" not in sort_by_list:
+            order_by.append("-date_added")
+
+        return queryset, order_by
 
     @extend_schema(
         operation_id="List an Organization's Explore Saved Queries",
@@ -303,12 +398,8 @@ class ExploreSavedQueriesEndpoint(OrganizationEndpoint):
         """
         Retrieve a list of saved queries that are associated with the given organization.
         """
-
-        if not request.user.is_authenticated:
-            return Response(status=400)
-
-        if not self.has_feature(organization, request):
-            return self.respond(status=404)
+        if access_response := self._check_access(request, organization):
+            return access_response
 
         try:
             lock = locks.get(
@@ -358,66 +449,8 @@ class ExploreSavedQueriesEndpoint(OrganizationEndpoint):
         )
         queryset = queryset.annotate(user_last_visited=last_visited_query)
 
-        order_by: list[OrderBy | Case | str] = []
-
         sort_by_list = request.query_params.getlist("sortBy")
-        if sort_by_list and len(sort_by_list) > 0:
-            for sort_by in sort_by_list:
-                if sort_by.startswith("-"):
-                    sort_by, desc = sort_by[1:], True
-                else:
-                    desc = False
-
-                if sort_by == "name":
-                    order_by.append("-lower_name" if desc else "lower_name")
-
-                elif sort_by == "dateAdded":
-                    order_by.append("-date_added" if desc else "date_added")
-
-                elif sort_by == "dateUpdated":
-                    order_by.append("-date_updated" if desc else "date_updated")
-
-                elif sort_by == "mostPopular":
-                    order_by.append("visits" if desc else "-visits")
-
-                elif sort_by == "recentlyViewed":
-                    order_by.append(
-                        F("user_last_visited").asc(nulls_last=True)
-                        if desc
-                        else F("user_last_visited").desc(nulls_last=True)
-                    )
-
-                elif sort_by == "myqueries":
-                    order_by.append(
-                        Case(
-                            When(created_by_id=request.user.id, then=-1),
-                            default="created_by_id",
-                            output_field=IntegerField(),
-                        ),
-                    )
-
-                elif sort_by == "mostStarred":
-                    queryset = queryset.annotate(starred_count=Count("exploresavedquerystarred"))
-                    order_by.append("-starred_count")
-
-                elif sort_by == "starred":
-                    queryset = queryset.annotate(
-                        is_starred=Exists(
-                            ExploreSavedQueryStarred.objects.filter(
-                                explore_saved_query_id=OuterRef("id"),
-                                user_id=request.user.id,
-                                starred=True,
-                            )
-                        )
-                    )
-                    order_by.append("-is_starred")
-
-        if len(order_by) == 0:
-            order_by.append("lower_name")
-
-        #  Finally we always at least secondarily sort by dateAdded
-        if "dateAdded" not in sort_by_list and "-dateAdded" not in sort_by_list:
-            order_by.append("-date_added")
+        queryset, order_by = self._apply_sorting(queryset, sort_by_list, request)
 
         exclude = request.query_params.get("exclude")
         if exclude == "shared":
@@ -475,11 +508,8 @@ class ExploreSavedQueriesEndpoint(OrganizationEndpoint):
         """
         Create a new trace explorersaved query for the given organization.
         """
-        if not request.user.is_authenticated:
-            return Response(status=400)
-
-        if not self.has_feature(organization, request):
-            return self.respond(status=404)
+        if access_response := self._check_access(request, organization):
+            return access_response
 
         try:
             params = self.get_filter_params(
