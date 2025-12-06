@@ -153,7 +153,6 @@ pnpm-lock.yaml                                           @getsentry/owners-js-de
 
 ## Issue Detection Lower Priority
 # Located here so they do not take precedence over rules below.
-/src/sentry/middleware/reporting_endpoint.py             @getsentry/issue-detection-backend
 /src/sentry/tasks/post_process.py                        @getsentry/issue-detection-backend
 ## Issue Detection Lower Priority
 
@@ -527,6 +526,7 @@ pnpm-lock.yaml                                           @getsentry/owners-js-de
 /static/app/components/events/autofix/                      @getsentry/machine-learning-ai
 /static/app/views/seerExplorer/                             @getsentry/machine-learning-ai
 /src/sentry/seer/                                           @getsentry/machine-learning-ai
+/tests/sentry/seer/                                         @getsentry/machine-learning-ai
 ## End of ML & AI
 
 ## Issues
@@ -579,7 +579,7 @@ pnpm-lock.yaml                                           @getsentry/owners-js-de
 /src/sentry/tasks/merge.py                                  @getsentry/issue-detection-backend
 /src/sentry/tasks/unmerge.py                                @getsentry/issue-detection-backend
 /src/sentry/tasks/weekly_escalating_forecast.py             @getsentry/issue-detection-backend
-/src/sentry/tasks/llm_issue_detection.py                    @getsentry/issue-detection-backend
+/src/sentry/tasks/llm_issue_detection/                      @getsentry/issue-detection-backend
 /static/app/components/events/contexts/                     @getsentry/issue-workflow
 /static/app/components/events/eventTags/                    @getsentry/issue-workflow
 /static/app/components/events/highlights/                   @getsentry/issue-workflow
