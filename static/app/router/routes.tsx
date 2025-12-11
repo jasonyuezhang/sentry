@@ -1355,7 +1355,6 @@ function buildRoutes(): RouteObject[] {
     {
       path: ':projectId/events/:eventId/',
       component: errorHandler(ProjectEventRedirect),
-      deprecatedRouteProps: true,
     },
     {
       path: ':projectId/getting-started/',
@@ -3089,7 +3088,6 @@ function buildRoutes(): RouteObject[] {
       {
         path: ':projectId/events/:eventId/',
         component: errorHandler(ProjectEventRedirect),
-        deprecatedRouteProps: true,
       },
     ],
   };
