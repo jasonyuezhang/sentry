@@ -666,6 +666,20 @@ class GitHubIntegration(
         config = self._get_organization_config_default_values()
 
         if features.has("organizations:integrations-github-project-management", self.organization):
+            # Get currently configured external projects to display their labels
+            current_repo_items = []
+            external_projects = IntegrationExternalProject.objects.filter(
+                organization_integration_id=self.org_integration.id
+            )
+
+            if external_projects.exists():
+                # Use the stored names from IntegrationExternalProject
+                # Fallback to external_id if name is empty (for legacy entries)
+                current_repo_items = [
+                    {"value": project.external_id, "label": project.external_id}
+                    for project in external_projects
+                ]
+
             config.insert(
                 0,
                 {
@@ -679,9 +693,17 @@ class GitHubIntegration(
                     "addDropdown": {
                         "emptyMessage": _("All projects configured"),
                         "noResultsMessage": _("Could not find Github project"),
-                        "items": [],  # Populated with projects
+                        "items": current_repo_items,
+                        "url": reverse(
+                            "sentry-integration-github-search",
+                            args=[self.organization.slug, self.model.id],
+                        ),
+                        "searchField": "repo",
                     },
-                    "mappedSelectors": {},
+                    "mappedSelectors": {
+                        "on_resolve": {"choices": GitHubIssueStatus.get_choices()},
+                        "on_unresolve": {"choices": GitHubIssueStatus.get_choices()},
+                    },
                     "columnLabels": {
                         "on_resolve": _("When resolved"),
                         "on_unresolve": _("When unresolved"),
@@ -690,30 +712,6 @@ class GitHubIntegration(
                     "formatMessageValue": False,
                 },
             )
-            try:
-                # Fetch all repositories and add them to the config
-                repositories = self.get_client().get_repos()
-
-                # Format repositories for the dropdown
-                formatted_repos = [
-                    {"value": repository["full_name"], "label": repository["name"]}
-                    for repository in repositories
-                    if not repository.get("archived")
-                ]
-                config[0]["addDropdown"]["items"] = formatted_repos
-
-                status_choices = GitHubIssueStatus.get_choices()
-
-                # Add mappedSelectors for each repository with GitHub status choices
-                config[0]["mappedSelectors"] = {
-                    "on_resolve": {"choices": status_choices},
-                    "on_unresolve": {"choices": status_choices},
-                }
-            except ApiError:
-                config[0]["disabled"] = True
-                config[0]["disabledReason"] = _(
-                    "Unable to communicate with the GitHub instance. You may need to reinstall the integration."
-                )
 
         context = organization_service.get_organization_by_id(
             id=self.organization_id, include_projects=False, include_teams=False
