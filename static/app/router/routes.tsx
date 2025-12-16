@@ -1368,7 +1368,6 @@ function buildRoutes(): RouteObject[] {
     component: make(() => import('sentry/views/projects/')),
     withOrgPath: true,
     children: projectsChildren,
-    deprecatedRouteProps: true,
   };
 
   const traceView: SentryRouteObject = {
@@ -2664,7 +2663,6 @@ function buildRoutes(): RouteObject[] {
     {
       path: 'dynamic-groups/',
       component: make(() => import('sentry/views/issueList/pages/dynamicGrouping')),
-      deprecatedRouteProps: true,
     },
     {
       path: 'views/:viewId/',
