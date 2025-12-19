@@ -33,8 +33,9 @@ export interface Block {
   message: Message;
   timestamp: string;
   artifacts?: Artifact[];
-  file_patches?: ExplorerFilePatch[];
+  file_patches?: ExplorerFilePatch[]; // Incremental patches (for approval)
   loading?: boolean;
+  merged_file_patches?: ExplorerFilePatch[]; // Merged patches (original → current) for files touched in this block
   pr_commit_shas?: Record<string, string>;
   todos?: TodoItem[];
   tool_links?: Array<ToolLink | null>;
@@ -61,6 +62,7 @@ export interface ToolCall {
 interface Message {
   content: string;
   role: 'user' | 'assistant' | 'tool_use';
+  thinking_content?: string;
   tool_calls?: ToolCall[];
 }
 
