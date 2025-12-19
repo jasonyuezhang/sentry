@@ -1355,7 +1355,6 @@ function buildRoutes(): RouteObject[] {
     {
       path: ':projectId/events/:eventId/',
       component: errorHandler(ProjectEventRedirect),
-      deprecatedRouteProps: true,
     },
     {
       path: ':projectId/getting-started/',
@@ -1832,7 +1831,6 @@ function buildRoutes(): RouteObject[] {
     {
       path: 'homepage/',
       component: make(() => import('sentry/views/discover/homepage')),
-      deprecatedRouteProps: true,
     },
     traceView,
     {
@@ -1842,12 +1840,10 @@ function buildRoutes(): RouteObject[] {
     {
       path: 'results/',
       component: make(() => import('sentry/views/discover/results')),
-      deprecatedRouteProps: true,
     },
     {
       path: ':eventSlug/',
       component: make(() => import('sentry/views/discover/eventDetails')),
-      deprecatedRouteProps: true,
     },
   ];
   const discoverRoutes: SentryRouteObject = {
@@ -1855,7 +1851,6 @@ function buildRoutes(): RouteObject[] {
     component: make(() => import('sentry/views/discover')),
     withOrgPath: true,
     children: discoverChildren,
-    deprecatedRouteProps: true,
   };
 
   // Redirects for old LLM monitoring routes
@@ -3091,7 +3086,6 @@ function buildRoutes(): RouteObject[] {
       {
         path: ':projectId/events/:eventId/',
         component: errorHandler(ProjectEventRedirect),
-        deprecatedRouteProps: true,
       },
     ],
   };
