@@ -14,7 +14,7 @@ from fixtures.github import (
 )
 from sentry.integrations.github.client import GitHubReaction
 from sentry.integrations.github.webhook_types import GithubWebhookType
-from sentry.seer.code_review.utils import ClientError
+from sentry.seer.code_review.utils import METRICS_PREFIX, ClientError
 from sentry.seer.code_review.webhooks.check_run import GitHubCheckRunAction
 from sentry.seer.code_review.webhooks.issue_comment import (
     SENTRY_REVIEW_COMMAND,
@@ -24,7 +24,6 @@ from sentry.seer.code_review.webhooks.issue_comment import (
 from sentry.seer.code_review.webhooks.task import (
     DELAY_BETWEEN_RETRIES,
     MAX_RETRIES,
-    PREFIX,
     process_github_webhook_event,
 )
 from sentry.testutils.cases import TestCase
@@ -257,7 +256,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_server_error_response_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -285,7 +284,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_service_unavailable_response_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -311,7 +310,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_rate_limit_response_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -336,7 +335,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         assert "HTTPError" in str(outcome_calls[0])
 
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_client_error_response_not_retried(
         self, mock_metrics: MagicMock, mock_request: MagicMock
     ) -> None:
@@ -362,7 +361,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_network_error_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -390,7 +389,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_timeout_error_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -418,7 +417,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_ssl_error_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -446,7 +445,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_new_connection_error_raises_for_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -474,7 +473,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_network_error_not_logged_on_early_retry(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -504,7 +503,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         mock_metrics.timing.assert_not_called()
 
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_unexpected_error_logged_and_tracked(
         self, mock_metrics: MagicMock, mock_request: MagicMock
     ) -> None:
@@ -532,7 +531,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         mock_metrics.timing.assert_called_once()
 
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_latency_tracking_on_first_attempt(
         self, mock_metrics: MagicMock, mock_request: MagicMock
     ) -> None:
@@ -547,13 +546,13 @@ class ProcessGitHubWebhookEventTest(TestCase):
 
         mock_metrics.timing.assert_called_once()
         call_args = mock_metrics.timing.call_args[0]
-        assert call_args[0] == f"{PREFIX}.e2e_latency"
+        assert call_args[0] == f"{METRICS_PREFIX}.e2e_latency"
         # 2 seconds base + test overhead, allow wide tolerance (1-5 seconds total)
         assert 1000 <= call_args[1] <= 5000, f"Expected latency between 1-5s, got {call_args[1]}ms"
 
     @patch("sentry.seer.code_review.webhooks.task.current_task")
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_latency_tracking_on_max_retries_with_failures(
         self, mock_metrics: MagicMock, mock_request: MagicMock, mock_current_task: MagicMock
     ) -> None:
@@ -588,7 +587,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         # Timing called exactly once on the last attempt only
         mock_metrics.timing.assert_called_once()
         call_args = mock_metrics.timing.call_args[0]
-        assert call_args[0] == f"{PREFIX}.e2e_latency"
+        assert call_args[0] == f"{METRICS_PREFIX}.e2e_latency"
 
         call_kwargs = mock_metrics.timing.call_args[1]
         assert "tags" in call_kwargs
@@ -602,7 +601,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         ), f"Expected latency ~{expected_latency_ms}ms, got {call_args[1]}ms"
 
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_pr_related_event_calls_correct_endpoint(
         self, mock_metrics: MagicMock, mock_request: MagicMock
     ) -> None:
@@ -640,7 +639,7 @@ class ProcessGitHubWebhookEventTest(TestCase):
         assert call_args[1]["body"] == orjson.dumps(event_payload)
 
     @patch("sentry.seer.code_review.utils.make_signed_seer_api_request")
-    @patch("sentry.seer.code_review.webhooks.task.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_check_run_and_pr_events_processed_separately(
         self, mock_metrics: MagicMock, mock_request: MagicMock
     ) -> None:
@@ -801,7 +800,7 @@ class AddEyesReactionTest(TestCase):
         mock_logger.warning.assert_called_once()
         assert "missing-integration" in mock_logger.warning.call_args[0][0]
 
-    @patch("sentry.seer.code_review.webhooks.issue_comment.metrics")
+    @patch("sentry.seer.code_review.utils.metrics")
     def test_calls_github_api_with_eyes_reaction(self, mock_metrics: MagicMock) -> None:
         mock_client = MagicMock()
         mock_installation = MagicMock()
@@ -817,11 +816,12 @@ class AddEyesReactionTest(TestCase):
         )
 
         mock_client.create_comment_reaction.assert_called_once_with(
-            "owner/repo", "123456", GitHubReaction.EYES
+            self.repo.name, "123456", GitHubReaction.EYES
         )
         mock_metrics.incr.assert_called_once()
         call_args = mock_metrics.incr.call_args
-        assert call_args[0][0] == "seer.code_review.webhook.issue_comment.outcome"
+        assert call_args[0][0] == "seer.code_review.webhook.outcome"
+        assert call_args[1]["tags"]["github_event"] == "issue_comment"
         assert call_args[1]["tags"]["status"] == "reaction_added"
 
     @patch("sentry.seer.code_review.webhooks.issue_comment.logger")

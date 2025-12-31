@@ -15,9 +15,9 @@ from sentry.integrations.github.webhook_types import GithubWebhookType
 from sentry.integrations.services.integration import RpcIntegration
 from sentry.models.organization import Organization
 from sentry.models.repository import Repository
-from sentry.utils import metrics
 
 from ..permissions import has_code_review_enabled
+from ..utils import record_error, record_outcome
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,6 @@ class ErrorStatus(enum.StrEnum):
 class Log(enum.StrEnum):
     MISSING_INTEGRATION = "github.webhook.issue_comment.missing-integration"
     REACTION_FAILED = "github.webhook.issue_comment.reaction-failed"
-
-
-class Metrics(enum.StrEnum):
-    ERROR = "seer.code_review.webhook.issue_comment.error"
-    OUTCOME = "seer.code_review.webhook.issue_comment.outcome"
 
 
 SENTRY_REVIEW_COMMAND = "@sentry review"
@@ -53,12 +48,10 @@ def _add_eyes_reaction_to_comment(
     comment_id: str,
 ) -> None:
     extra = {"organization_id": organization.id, "repo": repo.name, "comment_id": comment_id}
+    github_event = GithubWebhookType.ISSUE_COMMENT
 
     if integration is None:
-        metrics.incr(
-            Metrics.ERROR.value,
-            tags={"error_status": ErrorStatus.MISSING_INTEGRATION.value},
-        )
+        record_error(github_event, ErrorStatus.MISSING_INTEGRATION.value)
         logger.warning(
             Log.MISSING_INTEGRATION.value,
             extra=extra,
@@ -68,15 +61,9 @@ def _add_eyes_reaction_to_comment(
     try:
         client = integration.get_installation(organization_id=organization.id).get_client()
         client.create_comment_reaction(repo.name, comment_id, GitHubReaction.EYES)
-        metrics.incr(
-            Metrics.OUTCOME.value,
-            tags={"status": "reaction_added"},
-        )
+        record_outcome(github_event, "reaction_added")
     except Exception:
-        metrics.incr(
-            Metrics.ERROR.value,
-            tags={"error_status": ErrorStatus.REACTION_FAILED.value},
-        )
+        record_error(github_event, ErrorStatus.REACTION_FAILED.value)
         logger.exception(
             Log.REACTION_FAILED.value,
             extra=extra,
