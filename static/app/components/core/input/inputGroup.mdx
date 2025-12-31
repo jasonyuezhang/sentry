@@ -1,7 +1,7 @@
 ---
 title: InputGroup
 description: A compound component for creating inputs with leading or trailing elements like icons, buttons, or badges.
-source: 'sentry/components/core/input/inputGroup'
+source: '@sentry/scraps/input'
 resources:
   figma: https://www.figma.com/design/eTJz6aPgudMY9E6mzyZU0B/ChonkUI--App-Components--WIP-?node-id=384-2119&t=DdXZ7WIgTdURJlRv-4
   js: https://github.com/getsentry/sentry/blob/master/static/app/components/core/input/inputGroup.tsx
@@ -14,13 +14,15 @@ resources:
 
 import styled from '@emotion/styled';
 
-import {Button} from 'sentry/components/core/button';
-import {InputGroup} from 'sentry/components/core/input/inputGroup';
+import {Button} from '@sentry/scraps/button';
+import {InputGroup} from '@sentry/scraps/input/inputGroup';
+import {Grid} from '@sentry/scraps/layout';
+
 import {IconAttachment, IconSearch, IconSettings} from 'sentry/icons';
 import * as Storybook from 'sentry/stories';
 import {space} from 'sentry/styles/space';
 
-import documentation from '!!type-loader!@sentry/scraps/inputGroup';
+import documentation from '!!type-loader!@sentry/scraps/input/inputGroup';
 
 export {documentation};
 
@@ -55,7 +57,7 @@ Use `<InputGroup>` when you need to add visual context or actions directly adjac
 
 export function SizesDemo() {
   return (
-    <Grid>
+    <Grid columns="repeat(3, minmax(0, 1fr))" gap="md">
       <div>
         <code>md (default)</code>
         <InputGroup>
@@ -117,7 +119,7 @@ export function SizesDemo() {
 Use `<InputGroup.LeadingItems>` to add elements to the left side (start) of the input. Common use cases include search icons, currency symbols, or prefixes.
 
 <Storybook.Demo>
-  <Grid>
+  <Grid columns="repeat(3, minmax(0, 1fr))" gap="md">
     <InputGroup>
       <InputGroup.LeadingItems disablePointerEvents>
         <IconSearch />
@@ -141,7 +143,7 @@ Use `<InputGroup.LeadingItems>` to add elements to the left side (start) of the 
 Use `<InputGroup.TrailingItems>` to add elements to the right side (end) of the input. Common use cases include clear buttons, loading indicators, or unit labels.
 
 <Storybook.Demo>
-  <Grid>
+  <Grid columns="repeat(3, minmax(0, 1fr))" gap="md">
     <InputGroup>
       <InputGroup.Input placeholder="Search" />
       <InputGroup.TrailingItems disablePointerEvents>
@@ -194,7 +196,7 @@ When trailing items contain interactive elements (like buttons), don't use `disa
 
 export function InteractiveDemo() {
   return (
-    <Grid>
+    <Grid columns="repeat(3, minmax(0, 1fr))" gap="md">
       <InputGroup>
         <InputGroup.Input placeholder="Search" />
         <InputGroup.TrailingItems>
@@ -418,7 +420,3 @@ Show a loading indicator when fetching results:
 - Ensure the input receives focus when the label is clicked
 
 For more information, see the [WAI-ARIA Text Input practices](https://www.w3.org/WAI/ARIA/apg/patterns/textbox/).
-
-const Grid = styled('div')`  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${space(2)};`;

@@ -14,6 +14,7 @@ resources:
 import {useState} from 'react';
 import styled from '@emotion/styled';
 
+import {Stack} from 'sentry/components/core/layout';
 import {Slider} from 'sentry/components/core/slider';
 import * as Storybook from 'sentry/stories';
 import {space} from 'sentry/styles/space';
@@ -39,10 +40,10 @@ The simplest slider with default range (0-100):
 export function BasicDemo() {
   const [value, setValue] = useState(50);
   return (
-    <Label>
+    <Stack gap="md">
       Basic slider (value: {value})
       <Slider value={value} onChange={setValue} />
-    </Label>
+    </Stack>
   );
 }
 
@@ -63,10 +64,10 @@ Use `min` and `max` props to define the slider's range:
 export function MinMaxDemo() {
   const [value, setValue] = useState(150);
   return (
-    <Label>
+    <Stack gap="md">
       Range 100-200 (value: {value})
       <Slider value={value} onChange={setValue} min={100} max={200} />
-    </Label>
+    </Stack>
   );
 }
 
@@ -85,16 +86,16 @@ The `step` prop restricts which values can be selected. This creates discrete st
 export function StepDemo() {
   const [value, setValue] = useState(0);
   return (
-    <>
-      <Label>
+    <Stack gap="xl">
+      <Stack gap="md">
         Every 10th value (value: {value})
         <Slider value={value} onChange={setValue} defaultValue={0} step={10} />
-      </Label>
-      <Label>
+      </Stack>
+      <Stack gap="md">
         Steps of 25 (value: {value})
         <Slider value={value} onChange={setValue} min={100} max={200} step={25} />
-      </Label>
-    </>
+      </Stack>
+    </Stack>
   );
 }
 
@@ -117,12 +118,12 @@ Use the `formatLabel` callback to customize how the value is displayed:
 export function FormatDemo() {
   const [value, setValue] = useState(50);
   return (
-    <>
-      <Label>
+    <Stack gap="lg">
+      <Stack gap="md">
         Percentage format
         <Slider value={value} onChange={setValue} formatLabel={v => `${v}%`} />
-      </Label>
-      <Label>
+      </Stack>
+      <Stack gap="md">
         Currency format
         <Slider
           value={value}
@@ -132,8 +133,8 @@ export function FormatDemo() {
           step={50}
           formatLabel={v => `$${v}`}
         />
-      </Label>
-    </>
+      </Stack>
+    </Stack>
   );
 }
 
@@ -160,10 +161,10 @@ export function FormatDemo() {
 Set `disabled` to prevent interaction with the slider:
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     Disabled slider
     <Slider disabled defaultValue={50} />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -292,13 +293,3 @@ The component automatically includes:
 - Verify that Home/End keys reach min/max values
 
 For more information, see the [WAI-ARIA Slider practices](https://www.w3.org/WAI/ARIA/apg/patterns/slider/).
-
-const Label = styled('label')`
-display: flex;
-flex-direction: column;
-align-items: center;
-
-input {
-margin-top: ${space(2)};
-}
-`;

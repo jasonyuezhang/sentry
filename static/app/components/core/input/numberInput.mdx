@@ -15,11 +15,13 @@ resources:
 import {useState} from 'react';
 import styled from '@emotion/styled';
 
-import {NumberInput} from 'sentry/components/core/input/numberInput';
+import {NumberInput} from '@sentry/scraps/input/numberInput';
+import {Stack} from '@sentry/scraps/layout';
+
 import * as Storybook from 'sentry/stories';
 import {space} from 'sentry/styles/space';
 
-import documentation from '!!type-loader!@sentry/scraps/numberInput';
+import documentation from '!!type-loader!@sentry/scraps/input/numberInput';
 
 export {documentation};
 
@@ -36,10 +38,10 @@ Use `<NumberInput>` when users need to enter numeric values with optional bounds
 The simplest use case is a number input without constraints. Users can type numbers directly or use the increment/decrement buttons.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     Default NumberInput
     <NumberInput />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -51,14 +53,14 @@ The simplest use case is a number input without constraints. Users can type numb
 `<NumberInput>` supports two sizes: `md` (default) and `xs`. The size controls the height of the input and the scale of the step buttons.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     size="md" (default)
     <NumberInput defaultValue={42} />
-  </Label>
-  <Label>
+  </Stack>
+  <Stack gap="md">
     size="xs"
     <NumberInput size="xs" defaultValue={42} />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -73,10 +75,10 @@ Use the `min` and `max` props to constrain the allowed numeric range. The step b
 export function MinMaxDemo() {
   const [value, setValue] = useState(5);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value} (constrained between 0 and 10)
       <NumberInput value={value} onChange={setValue} min={0} max={10} />
-    </Label>
+    </Stack>
   );
 }
 
@@ -100,10 +102,10 @@ The `step` prop controls the increment/decrement amount. This is useful for valu
 export function StepDemo() {
   const [value, setValue] = useState(0);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value} (increments by 5)
       <NumberInput value={value} onChange={setValue} step={5} min={0} max={100} />
-    </Label>
+    </Stack>
   );
 }
 
@@ -124,7 +126,7 @@ const [value, setValue] = useState(0);
 export function DecimalDemo() {
   const [value, setValue] = useState(0.5);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value} (increments by 0.1)
       <NumberInput
         value={value}
@@ -137,7 +139,7 @@ export function DecimalDemo() {
           maximumFractionDigits: 1,
         }}
       />
-    </Label>
+    </Stack>
   );
 }
 
@@ -179,14 +181,14 @@ const [value, setValue] = useState(0);
 `<NumberInput>` supports `disabled` and `readOnly` states.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     Disabled
     <NumberInput defaultValue={42} disabled />
-  </Label>
-  <Label>
+  </Stack>
+  <Stack gap="md">
     Read-only
     <NumberInput defaultValue={42} readOnly />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -199,10 +201,10 @@ const [value, setValue] = useState(0);
 Use the `placeholder` prop to provide hint text when the input is empty.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     With placeholder
     <NumberInput placeholder="Enter a number" />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -214,14 +216,14 @@ Use the `placeholder` prop to provide hint text when the input is empty.
 Set the `monospace` prop to render the input value with a monospace font, useful for technical or code-related numeric values.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     Regular font
     <NumberInput defaultValue={12345} />
-  </Label>
-  <Label>
+  </Stack>
+  <Stack gap="md">
     Monospace font
     <NumberInput defaultValue={12345} monospace />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -370,7 +372,3 @@ The component automatically includes:
 
 - Use the `required` prop for required fields
 - Indicate visually in the label (e.g., with an asterisk)
-
-const Label = styled('label')`  display: flex;
-  flex-direction: column;
-  gap: ${space(1)};`;

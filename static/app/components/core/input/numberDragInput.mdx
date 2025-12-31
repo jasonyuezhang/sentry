@@ -14,11 +14,13 @@ resources:
 import {useState} from 'react';
 import styled from '@emotion/styled';
 
-import {NumberDragInput} from 'sentry/components/core/input/numberDragInput';
+import {NumberDragInput} from '@sentry/scraps/input/numberDragInput';
+import {Stack} from '@sentry/scraps/layout';
+
 import * as Storybook from 'sentry/stories';
 import {space} from 'sentry/styles/space';
 
-import documentation from '!!type-loader!@sentry/scraps/numberDragInput';
+import documentation from '!!type-loader!@sentry/scraps/input/numberDragInput';
 
 export {documentation};
 
@@ -42,7 +44,7 @@ Click and hold the arrow indicators on the right side of the input, then move th
 export function HorizontalDemo() {
   const [value, setValue] = useState(50);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value}
       <NumberDragInput
         axis="x"
@@ -52,7 +54,7 @@ export function HorizontalDemo() {
         max={100}
         placeholder="None"
       />
-    </Label>
+    </Stack>
   );
 }
 
@@ -84,7 +86,7 @@ export function AxesDemo() {
   const [verticalValue, setVerticalValue] = useState(10);
   return (
     <Storybook.SideBySide>
-      <Label>
+      <Stack gap="md">
         Horizontal (axis="x")
         <NumberDragInput
           axis="x"
@@ -94,8 +96,8 @@ export function AxesDemo() {
           value={horizontalValue}
           placeholder="None"
         />
-      </Label>
-      <Label>
+      </Stack>
+      <Stack gap="md">
         Vertical (axis="y")
         <NumberDragInput
           axis="y"
@@ -105,7 +107,7 @@ export function AxesDemo() {
           value={verticalValue}
           placeholder="None"
         />
-      </Label>
+      </Stack>
     </Storybook.SideBySide>
   );
 }
@@ -129,7 +131,7 @@ The `step` prop controls how much the value changes per drag increment. The defa
 export function StepDemo() {
   const [value, setValue] = useState(0);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value} (step=5)
       <NumberDragInput
         value={value}
@@ -138,7 +140,7 @@ export function StepDemo() {
         min={0}
         max={100}
       />
-    </Label>
+    </Stack>
   );
 }
 
@@ -157,7 +159,7 @@ Hold **Shift** while dragging to increase the step size by a multiplier (default
 export function ShiftKeyDemo() {
   const [value, setValue] = useState(50);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value}
       <br />
       <small>Hold Shift while dragging for 10× speed</small>
@@ -168,7 +170,7 @@ export function ShiftKeyDemo() {
         max={100}
         shiftKeyMultiplier={10}
       />
-    </Label>
+    </Stack>
   );
 }
 
@@ -196,7 +198,7 @@ Use the `min` and `max` props to constrain the allowed numeric range. Values are
 export function MinMaxDemo() {
   const [value, setValue] = useState(5);
   return (
-    <Label>
+    <Stack gap="md">
       Value: {value} (constrained between 0 and 10)
       <NumberDragInput
         value={value}
@@ -204,7 +206,7 @@ export function MinMaxDemo() {
         min={0}
         max={10}
       />
-    </Label>
+    </Stack>
   );
 }
 
@@ -233,7 +235,7 @@ Like standard inputs, `<NumberDragInput>` can be controlled or uncontrolled. Use
 export function UncontrolledDemo() {
   return (
     <Storybook.SideBySide>
-      <Label>
+      <Stack gap="md">
         Controlled
         <NumberDragInput
           value={25}
@@ -241,11 +243,11 @@ export function UncontrolledDemo() {
           min={0}
           max={100}
         />
-      </Label>
-      <Label>
+      </Stack>
+      <Stack gap="md">
         Uncontrolled
         <NumberDragInput defaultValue={25} min={0} max={100} />
-      </Label>
+      </Stack>
     </Storybook.SideBySide>
   );
 }
@@ -271,10 +273,10 @@ const [value, setValue] = useState(25);
 Use the `placeholder` prop to provide hint text when the input is empty.
 
 <Storybook.Demo>
-  <Label>
+  <Stack gap="md">
     With placeholder
     <NumberDragInput placeholder="Enter a value" min={0} max={100} />
-  </Label>
+  </Stack>
 </Storybook.Demo>
 
 ```jsx
@@ -411,9 +413,3 @@ The component includes:
 
 > [!WARNING]
 > The drag interaction relies on pointer lock, which may not work in all browsers or contexts. Always test keyboard functionality as the primary accessibility method.
-
-const Label = styled('label')`  display: flex;
-  flex-direction: column;
-  gap: ${space(1)};
-  font-size: ${p => p.theme.fontSizeSmall};
-  color: ${p => p.theme.subText};`;
