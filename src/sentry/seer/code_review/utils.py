@@ -6,15 +6,94 @@ import orjson
 from django.conf import settings
 from urllib3.exceptions import HTTPError
 
+from sentry.integrations.github.webhook_types import GithubWebhookType
 from sentry.models.repository import Repository
 from sentry.net.http import connection_from_url
 from sentry.seer.signed_seer_api import make_signed_seer_api_request
+from sentry.utils import metrics
 
 
 class ClientError(Exception):
     "Non-retryable client error from Seer"
 
     pass
+
+
+# -----------------------------------------------------------------------------
+# Standardized Metrics
+# -----------------------------------------------------------------------------
+# All code review webhook metrics use this prefix with a github_event tag
+# so dashboards don't need to be updated for each new webhook type.
+METRICS_PREFIX = "seer.code_review.webhook"
+
+
+def record_outcome(
+    github_event: GithubWebhookType | str,
+    status: str,
+    **extra_tags: str,
+) -> None:
+    """
+    Record a successful outcome metric for a webhook event.
+
+    Args:
+        github_event: The GitHub webhook event type (e.g., GithubWebhookType.CHECK_RUN)
+        status: The outcome status (e.g., "success", "reaction_added", "enqueued")
+        **extra_tags: Additional tags to include in the metric
+    """
+    event_value = (
+        github_event.value if isinstance(github_event, GithubWebhookType) else github_event
+    )
+    metrics.incr(
+        f"{METRICS_PREFIX}.outcome",
+        tags={"github_event": event_value, "status": status, **extra_tags},
+    )
+
+
+def record_error(
+    github_event: GithubWebhookType | str,
+    error_status: str,
+    **extra_tags: str,
+) -> None:
+    """
+    Record an error metric for a webhook event.
+
+    Args:
+        github_event: The GitHub webhook event type (e.g., GithubWebhookType.CHECK_RUN)
+        error_status: The error status (e.g., "missing_integration", "invalid_payload")
+        **extra_tags: Additional tags to include in the metric
+    """
+    event_value = (
+        github_event.value if isinstance(github_event, GithubWebhookType) else github_event
+    )
+    metrics.incr(
+        f"{METRICS_PREFIX}.error",
+        tags={"github_event": event_value, "error_status": error_status, **extra_tags},
+    )
+
+
+def record_timing(
+    github_event: GithubWebhookType | str,
+    timing_name: str,
+    value_ms: int,
+    **extra_tags: str,
+) -> None:
+    """
+    Record a timing metric for a webhook event.
+
+    Args:
+        github_event: The GitHub webhook event type (e.g., GithubWebhookType.CHECK_RUN)
+        timing_name: The name of the timing metric (e.g., "e2e_latency")
+        value_ms: The timing value in milliseconds
+        **extra_tags: Additional tags to include in the metric
+    """
+    event_value = (
+        github_event.value if isinstance(github_event, GithubWebhookType) else github_event
+    )
+    metrics.timing(
+        f"{METRICS_PREFIX}.{timing_name}",
+        value_ms,
+        tags={"github_event": event_value, **extra_tags},
+    )
 
 
 # These values need to match the value defined in the Seer API.

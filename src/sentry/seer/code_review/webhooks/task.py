@@ -16,19 +16,16 @@ from sentry.tasks.base import instrumented_task
 from sentry.taskworker.namespaces import seer_code_review_tasks
 from sentry.taskworker.retry import Retry
 from sentry.taskworker.state import current_task
-from sentry.utils import metrics
 
-from ..utils import SeerEndpoint, make_seer_request
+from ..utils import SeerEndpoint, make_seer_request, record_error, record_outcome, record_timing
 from .check_run import process_check_run_task_event
 
 logger = logging.getLogger(__name__)
 
 
-PREFIX = "seer.code_review.task"
 MAX_RETRIES = 3
 DELAY_BETWEEN_RETRIES = 60  # 1 minute
 RETRYABLE_ERRORS = (HTTPError,)
-METRICS_PREFIX = "seer.code_review.task"
 
 
 def _call_seer_request(
@@ -56,10 +53,7 @@ def schedule_task(
     )
 
     if transformed_event is None:
-        metrics.incr(
-            f"{METRICS_PREFIX}.{github_event.value}.skipped",
-            tags={"reason": "failed_to_transform", "github_event": github_event.value},
-        )
+        record_error(github_event, "failed_to_transform")
         return
 
     process_github_webhook_event.delay(
@@ -67,10 +61,7 @@ def schedule_task(
         event_payload=transformed_event,
         enqueued_at_str=datetime.now(timezone.utc).isoformat(),
     )
-    metrics.incr(
-        f"{METRICS_PREFIX}.{github_event.value}.enqueued",
-        tags={"status": "success", "github_event": github_event.value},
-    )
+    record_outcome(github_event, "enqueued")
 
 
 EVENT_TYPE_TO_PROCESSOR = {GithubWebhookType.CHECK_RUN: process_check_run_task_event}
@@ -116,15 +107,15 @@ def process_github_webhook_event(
         raise
     finally:
         if status != "success":
-            metrics.incr(f"{PREFIX}.error", tags={"error_status": status})
+            record_error(github_event, status)
         if should_record_latency:
-            record_latency(status, enqueued_at_str)
+            _record_latency(github_event, status, enqueued_at_str)
 
 
-def record_latency(status: str, enqueued_at_str: str) -> None:
+def _record_latency(github_event: GithubWebhookType, status: str, enqueued_at_str: str) -> None:
     latency_ms = calculate_latency(enqueued_at_str)
     if latency_ms > 0:
-        metrics.timing(f"{PREFIX}.e2e_latency", latency_ms, tags={"status": status})
+        record_timing(github_event, "e2e_latency", latency_ms, status=status)
 
 
 def calculate_latency(enqueued_at_str: str) -> int:
@@ -136,8 +127,7 @@ def calculate_latency(enqueued_at_str: str) -> int:
     except (ValueError, TypeError) as e:
         # Don't fail the task if timestamp parsing fails
         logger.warning(
-            "%s.invalid_timestamp",
-            PREFIX,
+            "seer.code_review.webhook.invalid_timestamp",
             extra={"enqueued_at": enqueued_at_str, "error": str(e)},
         )
         return 0
