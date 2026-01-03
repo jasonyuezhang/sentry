@@ -413,7 +413,7 @@ For large lists (hundreds of items), `<CompactSelect>` automatically virtualizes
 For expensive option computations or API-fetched data, use the `useCompactSelectOptionsCache` hook to memoize options:
 
 ```jsx
-import {useCompactSelectOptionsCache} from 'sentry/views/insights/common/utils/useCompactSelectOptionsCache';
+import {useCompactSelectOptionsCache} from 'sentry/components/core/compactSelect';
 
 function MyComponent() {
   const projects = useProjects(); // Expensive fetch
