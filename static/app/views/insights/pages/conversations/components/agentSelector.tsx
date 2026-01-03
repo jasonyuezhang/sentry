@@ -1,7 +1,10 @@
 import {useCallback, useMemo, useState} from 'react';
 import debounce from 'lodash/debounce';
 
-import {CompactSelect} from 'sentry/components/core/compactSelect';
+import {
+  CompactSelect,
+  useCompactSelectOptionsCache,
+} from 'sentry/components/core/compactSelect';
 import {t} from 'sentry/locale';
 import {decodeList} from 'sentry/utils/queryString';
 import useLocationQuery from 'sentry/utils/url/useLocationQuery';
@@ -9,7 +12,6 @@ import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import usePageFilters from 'sentry/utils/usePageFilters';
 import {useSpans} from 'sentry/views/insights/common/queries/useDiscover';
-import {useCompactSelectOptionsCache} from 'sentry/views/insights/common/utils/useCompactSelectOptionsCache';
 import {useWasSearchSpaceExhausted} from 'sentry/views/insights/common/utils/useWasSearchSpaceExhausted';
 import {TableUrlParams} from 'sentry/views/insights/pages/agents/utils/urlParams';
 import {SpanFields} from 'sentry/views/insights/types';

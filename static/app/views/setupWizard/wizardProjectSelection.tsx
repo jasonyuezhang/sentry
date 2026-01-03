@@ -5,7 +5,10 @@ import {PlatformIcon} from 'platformicons';
 import {addErrorMessage} from 'sentry/actionCreators/indicator';
 import {OrganizationAvatar} from 'sentry/components/core/avatar/organizationAvatar';
 import {Button} from 'sentry/components/core/button';
-import {CompactSelect} from 'sentry/components/core/compactSelect';
+import {
+  CompactSelect,
+  useCompactSelectOptionsCache,
+} from 'sentry/components/core/compactSelect';
 import {Input} from 'sentry/components/core/input';
 import {Flex, Stack} from 'sentry/components/core/layout';
 import IdBadge from 'sentry/components/idBadge';
@@ -20,7 +23,6 @@ import {space} from 'sentry/styles/space';
 import type {Organization} from 'sentry/types/organization';
 import RequestError from 'sentry/utils/requestError/requestError';
 import {useDebouncedValue} from 'sentry/utils/useDebouncedValue';
-import {useCompactSelectOptionsCache} from 'sentry/views/insights/common/utils/useCompactSelectOptionsCache';
 import {ProjectLoadingError} from 'sentry/views/setupWizard/projectLoadingError';
 import type {OrganizationWithRegion} from 'sentry/views/setupWizard/types';
 import {useCreateProjectFromWizard} from 'sentry/views/setupWizard/utils/useCreateProjectFromWizard';

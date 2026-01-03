@@ -8,3 +8,5 @@ export {
   type SelectSection,
   type SelectKey,
 } from './compactSelect';
+
+export {useCompactSelectOptionsCache} from './useCompactSelectOptionsCache';
