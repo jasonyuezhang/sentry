@@ -306,10 +306,18 @@ class SlackNotifyActionTest(RuleTestCase):
 
             with patch(
                 "slack_sdk.web.client.WebClient.users_info",
-                return_value={
-                    "ok": True,
-                    "user": {"name": "morty", "profile": {"display_name": "Morty Smith"}},
-                },
+                return_value=SlackResponse(
+                    client=None,
+                    http_verb="GET",
+                    api_url="https://slack.com/api/users.info",
+                    req_args={},
+                    data={
+                        "ok": True,
+                        "user": {"name": "morty", "profile": {"display_name": "Morty Smith"}},
+                    },
+                    headers={},
+                    status_code=200,
+                ),
             ):
                 self.assert_form_valid(form, "U1234567", "@morty")
 

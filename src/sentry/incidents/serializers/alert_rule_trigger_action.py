@@ -18,7 +18,10 @@ from sentry.incidents.models.alert_rule import AlertRuleTriggerAction
 from sentry.incidents.serializers import ACTION_TARGET_TYPE_TO_STRING, STRING_TO_ACTION_TARGET_TYPE
 from sentry.integrations.opsgenie.utils import OPSGENIE_CUSTOM_PRIORITIES
 from sentry.integrations.pagerduty.utils import PAGERDUTY_CUSTOM_PRIORITIES
-from sentry.integrations.slack.utils.channel import validate_slack_entity_id
+from sentry.integrations.slack.utils.channel import (
+    is_input_a_user_id,
+    validate_slack_entity_id,
+)
 from sentry.models.organizationmember import OrganizationMember
 from sentry.models.team import Team
 from sentry.notifications.models.notificationaction import ActionService
@@ -199,8 +202,10 @@ class AlertRuleTriggerActionSerializer(CamelSnakeModelSerializer):
                 input_name=identifier,
                 input_id=attrs["input_channel_id"],
             )
+            # Add prefix to ensure consistency with UI and Form behavior
+            prefix = "@" if is_input_a_user_id(attrs["input_channel_id"]) else "#"
             # Store the actual name for use in target_display later
-            attrs["actual_slack_name"] = actual_slack_name
+            attrs["actual_slack_name"] = f"{prefix}{actual_slack_name}"
         return attrs
 
     def create(self, validated_data):
