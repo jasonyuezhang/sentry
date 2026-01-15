@@ -286,3 +286,28 @@ def get_audit_log_data(detector: Detector):
         "headers": uptime_subscription.headers,
         "body": uptime_subscription.body,
     }
+
+
+@region_silo_model
+class UptimeResponseCapture(DefaultFieldsModel):
+    """
+    Stores HTTP response data captured during uptime check failures.
+
+    When an uptime monitor detects a failure, the response body and headers
+    are captured to help users debug why their endpoint is failing. This data
+    is stored as a raw HTTP response format in an associated File.
+    """
+
+    __relocation_scope__ = RelocationScope.Excluded
+
+    uptime_subscription = FlexibleForeignKey(
+        "uptime.UptimeSubscription", related_name="response_captures"
+    )
+    file = FlexibleForeignKey("sentry.File")
+
+    class Meta:
+        app_label = "uptime"
+        db_table = "uptime_uptimeresponsecapture"
+        indexes = [
+            models.Index(fields=["uptime_subscription", "date_added"]),
+        ]
