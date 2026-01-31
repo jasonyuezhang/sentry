@@ -1,9 +1,9 @@
 import {useCallback, useMemo} from 'react';
 
+import {CompactSelect} from '@sentry/scraps/compactSelect';
+import type {SelectOption} from '@sentry/scraps/compactSelect';
 import {OverlayTrigger} from '@sentry/scraps/overlayTrigger';
 
-import {CompactSelect} from 'sentry/components/core/compactSelect';
-import type {SelectOption} from 'sentry/components/core/compactSelect/types';
 import {t} from 'sentry/locale';
 import {Mode} from 'sentry/views/explore/contexts/pageParamsContext/mode';
 import {useGroupByFields} from 'sentry/views/explore/hooks/useGroupByFields';
@@ -95,6 +95,7 @@ export function GroupBySelector({traceMetric}: GroupBySelectorProps) {
     <CompactSelect
       multiple
       searchable
+      clearable
       trigger={triggerProps => (
         <OverlayTrigger.Button
           {...triggerProps}

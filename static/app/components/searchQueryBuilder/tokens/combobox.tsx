@@ -16,19 +16,15 @@ import {mergeRefs} from '@react-aria/utils';
 import {useComboBoxState, type ComboBoxState} from '@react-stately/combobox';
 import type {CollectionChildren, Key, KeyboardEvent} from '@react-types/shared';
 
-import {Flex} from '@sentry/scraps/layout';
-
-import {ListBox} from 'sentry/components/core/compactSelect/listBox';
-import type {
-  SelectKey,
-  SelectOptionOrSectionWithKey,
-} from 'sentry/components/core/compactSelect/types';
 import {
   getDisabledOptions,
   getHiddenOptions,
-} from 'sentry/components/core/compactSelect/utils';
-import {Input} from 'sentry/components/core/input';
-import {useAutosizeInput} from 'sentry/components/core/input/useAutosizeInput';
+  ListBox,
+} from '@sentry/scraps/compactSelect';
+import type {SelectKey, SelectOptionOrSectionWithKey} from '@sentry/scraps/compactSelect';
+import {Input, useAutosizeInput} from '@sentry/scraps/input';
+import {Flex} from '@sentry/scraps/layout';
+
 import {Overlay} from 'sentry/components/overlay';
 import {AskSeer} from 'sentry/components/searchQueryBuilder/askSeer/askSeer';
 import {ASK_SEER_CONSENT_ITEM_KEY} from 'sentry/components/searchQueryBuilder/askSeer/askSeerConsentOption';
@@ -585,26 +581,17 @@ export function SearchQueryBuilderCombobox<
 
   const autosizeInput = useAutosizeInput({value: inputValue});
 
-  // Memoize the merged ref to avoid calling callback refs on every render.
-  // mergeRefs creates a new function each call, which causes React to call
-  // old ref with null and new ref with element on every render.
-  const mergedInputRef = useMemo(
-    () =>
-      mergeRefs(
-        ref,
-        inputRef,
-        autosizeInput,
-        triggerProps.ref as React.Ref<HTMLInputElement>
-      ),
-    [ref, autosizeInput, triggerProps.ref]
-  );
-
   return (
     <Flex align="stretch" width="100%" height="100%" position="relative">
       <UnstyledInput
         {...inputProps}
         size="md"
-        ref={mergedInputRef}
+        ref={mergeRefs(
+          ref,
+          inputRef,
+          autosizeInput,
+          triggerProps.ref as React.Ref<HTMLInputElement>
+        )}
         type="text"
         placeholder={placeholder}
         onClick={handleInputClick}
