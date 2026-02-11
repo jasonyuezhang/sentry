@@ -264,6 +264,72 @@ class SlackNotifyActionTest(RuleTestCase):
             form = rule.get_form_instance()
             assert form.is_valid()
 
+    def test_channel_id_as_channel_name_auto_corrected(self) -> None:
+        """
+        Test that when a user provides a channel ID as the channel name,
+        the form auto-corrects it to the actual channel name from Slack.
+        This is for issue #105478.
+        """
+        # User mistakenly puts the channel ID in the channel name field
+        channel = {"name": "public", "id": "C013TMFDEAV"}
+        with self.mock_conversations_info(channel):
+            rule = self.get_rule(
+                data={
+                    "workspace": self.integration.id,
+                    "channel": "#C013TMFDEAV",
+                    "input_channel_id": "C013TMFDEAV",
+                    "tags": "",
+                }
+            )
+
+            form = rule.get_form_instance()
+            # Form should be valid and auto-correct the channel name
+            self.assert_form_valid(form, "C013TMFDEAV", "#public")
+
+    def test_user_id_as_channel_name_auto_corrected(self) -> None:
+        """
+        Test that when a user provides a User ID as the channel name,
+        the form auto-corrects it to the actual username with @ prefix.
+        """
+        # User mistakenly puts the User ID in the channel name field
+        user = {"name": "morty", "id": "U1234567"}
+        with self.mock_conversations_info(user):
+            rule = self.get_rule(
+                data={
+                    "workspace": self.integration.id,
+                    "channel": "U1234567",
+                    "input_channel_id": "U1234567",
+                    "tags": "",
+                }
+            )
+
+            form = rule.get_form_instance()
+            # Form should be valid and auto-correct to @morty
+            # Note: The mock helpers in this test file might behave differently for users vs channels
+            # We need to ensure mock_conversations_info mocks user lookup correctly or use a different mock
+
+            # The validate_user_id calls client.users_info.
+            # mock_conversations_info mocks conversations_info BUT validate_slack_entity_id
+            # will call validate_user_id if ID starts with U, which calls users_info.
+            # So we need to mock users_info.
+
+            with patch(
+                "slack_sdk.web.client.WebClient.users_info",
+                return_value=SlackResponse(
+                    client=None,
+                    http_verb="GET",
+                    api_url="https://slack.com/api/users.info",
+                    req_args={},
+                    data={
+                        "ok": True,
+                        "user": {"name": "morty", "profile": {"display_name": "Morty Smith"}},
+                    },
+                    headers={},
+                    status_code=200,
+                ),
+            ):
+                self.assert_form_valid(form, "U1234567", "@morty")
+
     def test_invalid_channel_id_provided_sdk(self) -> None:
         with patch(
             "slack_sdk.web.client.WebClient.conversations_info",
@@ -282,23 +348,26 @@ class SlackNotifyActionTest(RuleTestCase):
             assert not form.is_valid()
             assert "Channel not found. Invalid ID provided." in str(form.errors.values())
 
-    def test_invalid_channel_name_provided_sdk(self) -> None:
+    def test_mismatched_channel_name_auto_corrected(self) -> None:
+        """
+        Test that when the user-provided channel name doesn't match the actual name from Slack,
+        the form auto-corrects it to the actual channel name (instead of raising an error).
+        This is part of the fix for issue #105478.
+        """
         channel = {"name": "my-channel", "id": "C2349874"}
         with self.mock_conversations_info(channel):
             rule = self.get_rule(
                 data={
                     "workspace": self.integration.id,
-                    "channel": "#my-chanel",
-                    "input_channel_id": "C1234567",
+                    "channel": "#my-chanel",  # User typed wrong name
+                    "input_channel_id": "C2349874",
                     "tags": "",
                 }
             )
 
             form = rule.get_form_instance()
-            assert not form.is_valid()
-            assert "Slack: Slack channel name from ID does not match input channel name." in str(
-                form.errors.values()
-            )
+            # Form should be valid and auto-correct the channel name
+            self.assert_form_valid(form, "C2349874", "#my-channel")
 
     def test_invalid_workspace(self) -> None:
         # the workspace _should_ be the integration id

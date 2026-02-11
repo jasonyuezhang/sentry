@@ -18,7 +18,10 @@ from sentry.incidents.models.alert_rule import AlertRuleTriggerAction
 from sentry.incidents.serializers import ACTION_TARGET_TYPE_TO_STRING, STRING_TO_ACTION_TARGET_TYPE
 from sentry.integrations.opsgenie.utils import OPSGENIE_CUSTOM_PRIORITIES
 from sentry.integrations.pagerduty.utils import PAGERDUTY_CUSTOM_PRIORITIES
-from sentry.integrations.slack.utils.channel import validate_slack_entity_id
+from sentry.integrations.slack.utils.channel import (
+    is_input_a_user_id,
+    validate_slack_entity_id,
+)
 from sentry.models.organizationmember import OrganizationMember
 from sentry.models.team import Team
 from sentry.notifications.models.notificationaction import ActionService
@@ -205,16 +208,29 @@ class AlertRuleTriggerActionSerializer(CamelSnakeModelSerializer):
         should_validate_channel_id = self.context.get("validate_channel_id", True)
         # validate_channel_id is assumed to be true unless explicitly passed as false
         if attrs["input_channel_id"] and should_validate_channel_id:
-            validate_slack_entity_id(
+            # validate_slack_entity_id returns the actual name from Slack API
+            # This enables auto-correction when users provide channel IDs as names
+            actual_slack_name = validate_slack_entity_id(
                 integration_id=attrs["integration_id"],
                 input_name=identifier,
                 input_id=attrs["input_channel_id"],
             )
+            # Add prefix to ensure consistency with UI and Form behavior
+            prefix = "@" if is_input_a_user_id(attrs["input_channel_id"]) else "#"
+            # Store the actual name for use in target_display later
+            attrs["actual_slack_name"] = f"{prefix}{actual_slack_name}"
         return attrs
 
     def create(self, validated_data):
         for key in ("id", "sentry_app_installation_uuid"):
             validated_data.pop(key, None)
+
+        # If we have the actual Slack name from validation, use it for target_identifier
+        # This fixes the issue where channel IDs are used as channel names (issue #105478)
+        actual_slack_name = validated_data.pop("actual_slack_name", None)
+        if actual_slack_name is not None:
+            validated_data["target_identifier"] = actual_slack_name
+
         try:
             action = create_alert_rule_trigger_action(
                 trigger=self.context["trigger"], **validated_data
@@ -241,6 +257,12 @@ class AlertRuleTriggerActionSerializer(CamelSnakeModelSerializer):
     def update(self, instance, validated_data):
         for key in ("id", "sentry_app_installation_uuid"):
             validated_data.pop(key, None)
+
+        # If we have the actual Slack name from validation, use it for target_identifier
+        # This fixes the issue where channel IDs are used as channel names (issue #105478)
+        actual_slack_name = validated_data.pop("actual_slack_name", None)
+        if actual_slack_name is not None:
+            validated_data["target_identifier"] = actual_slack_name
 
         try:
             action = update_alert_rule_trigger_action(instance, **validated_data)
