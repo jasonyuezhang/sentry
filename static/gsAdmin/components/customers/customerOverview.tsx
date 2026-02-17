@@ -828,6 +828,7 @@ function CustomerOverview({customer, onAction, organization}: Props) {
               <tr>
                 <th>Category</th>
                 <th>Standard</th>
+                <th>Default</th>
                 <th>
                   <Tooltip title="Null means use the Downsample default">
                     Downsampled
@@ -851,7 +852,12 @@ function CustomerOverview({customer, onAction, organization}: Props) {
                         category: bmh.category,
                       })}
                     </td>
-                    <td>{bmh.retention?.standard}</td>
+                    <td>
+                      {bmh.retention?.standard === null
+                        ? 'null'
+                        : bmh.retention?.standard}
+                    </td>
+                    <td>{customer.planDetails.retentions?.[bmh.category]?.standard}</td>
                     <td>
                       {bmh.retention?.downsampled === null
                         ? 'null'
