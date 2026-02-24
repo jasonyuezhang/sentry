@@ -1,3 +1,6 @@
+import type {Ref} from 'react';
+import {mergeRefs} from '@react-aria/utils';
+
 import {useAutoSaveContext} from '@sentry/scraps/form/autoSaveContext';
 import {Flex} from '@sentry/scraps/layout';
 import {Switch, type SwitchProps} from '@sentry/scraps/switch';
@@ -29,11 +32,14 @@ export function SwitchField({
               size="lg"
               {...fieldProps}
               {...props}
+              ref={mergeRefs(fieldProps.ref as Ref<HTMLInputElement>, props.ref)}
               disabled={isDisabled}
               onChange={e => {
                 onChange(e.target.checked);
                 // Trigger onBlur for auto-saving when the switch is toggled
                 if (autoSaveContext) {
+                  // Switches should reset to previous value on error
+                  autoSaveContext.resetOnErrorRef.current = true;
                   fieldProps.onBlur();
                 }
               }}
