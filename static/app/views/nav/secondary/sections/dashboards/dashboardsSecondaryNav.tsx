@@ -9,7 +9,7 @@ import useProjects from 'sentry/utils/useProjects';
 import {useUser} from 'sentry/utils/useUser';
 import {useGetStarredDashboards} from 'sentry/views/dashboards/hooks/useGetStarredDashboards';
 import {PRIMARY_NAV_GROUP_CONFIG} from 'sentry/views/nav/primary/config';
-import ProjectIcon from 'sentry/views/nav/projectIcon';
+import {ProjectIcon} from 'sentry/views/nav/projectIcon';
 import {SecondaryNav} from 'sentry/views/nav/secondary/secondary';
 import {DashboardsNavItems} from 'sentry/views/nav/secondary/sections/dashboards/dashboardsNavItems';
 import {PrimaryNavGroup} from 'sentry/views/nav/types';

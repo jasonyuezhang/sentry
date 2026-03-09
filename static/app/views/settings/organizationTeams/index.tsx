@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useMemo} from 'react';
 
 import {loadStats} from 'sentry/actionCreators/projects';
-import LoadingError from 'sentry/components/loadingError';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingError} from 'sentry/components/loadingError';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {t} from 'sentry/locale';
 import TeamStore from 'sentry/stores/teamStore';
 import type {AccessRequest} from 'sentry/types/organization';
@@ -11,7 +11,7 @@ import {setApiQueryData, useApiQuery, useQueryClient} from 'sentry/utils/queryCl
 import useApi from 'sentry/utils/useApi';
 import useOrganization from 'sentry/utils/useOrganization';
 
-import OrganizationTeams from './organizationTeams';
+import {OrganizationTeams} from './organizationTeams';
 
 export default function OrganizationTeamsContainer() {
   const api = useApi();

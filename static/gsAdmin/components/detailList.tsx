@@ -6,7 +6,7 @@ type Props = {
   maxLabelSize?: number;
 };
 
-const DetailList = styled('dl')<Props>`
+export const DetailList = styled('dl')<Props>`
   display: grid;
   gap: ${space(1)};
   grid-template-columns:
@@ -14,5 +14,3 @@ const DetailList = styled('dl')<Props>`
     1fr;
   margin-bottom: 0;
 `;
-
-export default DetailList;

@@ -32,7 +32,7 @@ type Props = {
   existingConfig?: RepositoryProjectPathConfig;
 };
 
-function RepositoryProjectPathConfigForm({
+export function RepositoryProjectPathConfigForm({
   existingConfig,
   integration,
   onCancel,
@@ -187,5 +187,3 @@ function RepositoryProjectPathConfigForm({
     </Form>
   );
 }
-
-export default RepositoryProjectPathConfigForm;

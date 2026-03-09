@@ -1,6 +1,6 @@
 import {Outlet} from 'react-router-dom';
 
-import Redirect from 'sentry/components/redirect';
+import {Redirect} from 'sentry/components/redirect';
 import {useRedirectNavV2Routes} from 'sentry/views/nav/useRedirectNavV2Routes';
 
 export default function Projects() {

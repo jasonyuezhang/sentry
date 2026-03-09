@@ -14,7 +14,7 @@ import {NavLayout} from 'sentry/views/nav/types';
 import {useCurrentBillingHistory} from 'getsentry/hooks/useCurrentBillingHistory';
 import trackGetsentryAnalytics from 'getsentry/utils/trackGetsentryAnalytics';
 
-function UsageOverviewActions({organization}: {organization: Organization}) {
+export function UsageOverviewActions({organization}: {organization: Organization}) {
   const {layout: navLayout, isCollapsed: navIsCollapsed} = useNavContext();
   const isMobile = navLayout === NavLayout.MOBILE;
   const theme = useTheme();
@@ -108,5 +108,3 @@ function UsageOverviewActions({organization}: {organization: Organization}) {
     </Flex>
   );
 }
-
-export default UsageOverviewActions;

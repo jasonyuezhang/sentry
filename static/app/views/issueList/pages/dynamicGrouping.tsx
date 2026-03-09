@@ -17,16 +17,16 @@ import {Tooltip} from '@sentry/scraps/tooltip';
 import {bulkUpdate} from 'sentry/actionCreators/group';
 import {openConfirmModal} from 'sentry/components/confirm';
 import {DropdownMenu} from 'sentry/components/dropdownMenu';
-import FeedbackButton from 'sentry/components/feedbackButton/feedbackButton';
+import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import useDrawer from 'sentry/components/globalDrawer';
 import ProjectBadge from 'sentry/components/idBadge/projectBadge';
 import * as Layout from 'sentry/components/layouts/thirds';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {ALL_ACCESS_PROJECTS} from 'sentry/components/pageFilters/constants';
-import PageFiltersContainer from 'sentry/components/pageFilters/container';
+import {PageFiltersContainer} from 'sentry/components/pageFilters/container';
 import {ProjectPageFilter} from 'sentry/components/pageFilters/project/projectPageFilter';
 import usePageFilters from 'sentry/components/pageFilters/usePageFilters';
-import Redirect from 'sentry/components/redirect';
+import {Redirect} from 'sentry/components/redirect';
 import TimeSince from 'sentry/components/timeSince';
 import {
   IconArrow,

@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import useOrganization from 'sentry/utils/useOrganization';
 import {PRIMARY_SIDEBAR_WIDTH} from 'sentry/views/nav/constants';
 import {useNavContext} from 'sentry/views/nav/context';
-import MobileTopbar from 'sentry/views/nav/mobileTopbar';
+import {MobileTopbar} from 'sentry/views/nav/mobileTopbar';
 import {Sidebar} from 'sentry/views/nav/sidebar';
 import {
   NavigationTourProvider,
@@ -43,7 +43,7 @@ function NavContent() {
   );
 }
 
-function Nav() {
+export function Nav() {
   const organization = useOrganization({allowNull: true});
 
   if (!organization) {
@@ -92,5 +92,3 @@ const NoOrganizationSidebar = styled('div')`
   align-items: center;
   flex-direction: column;
 `;
-
-export default Nav;

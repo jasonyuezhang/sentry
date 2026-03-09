@@ -28,7 +28,7 @@ import {AriaComponent} from 'echarts/components';
 import * as echarts from 'echarts/core';
 import type {CallbackDataParams} from 'echarts/types/dist/shared';
 
-import MarkLine from 'sentry/components/charts/components/markLine';
+import {MarkLine} from 'sentry/components/charts/components/markLine';
 import {space} from 'sentry/styles/space';
 import type {
   EChartBrushEndHandler,
@@ -49,16 +49,16 @@ import type {
 } from 'sentry/types/echarts';
 import {defined} from 'sentry/utils';
 
-import Grid from './components/grid';
-import Legend from './components/legend';
+import {Grid} from './components/grid';
+import {Legend} from './components/legend';
 import {
   CHART_TOOLTIP_VIEWPORT_OFFSET,
   computeChartTooltip,
   type TooltipSubLabel,
 } from './components/tooltip';
 import XAxis from './components/xAxis';
-import YAxis from './components/yAxis';
-import LineSeries from './series/lineSeries';
+import {YAxis} from './components/yAxis';
+import {LineSeries} from './series/lineSeries';
 import {
   computeEchartsAriaLabels,
   getDiffInMinutes,

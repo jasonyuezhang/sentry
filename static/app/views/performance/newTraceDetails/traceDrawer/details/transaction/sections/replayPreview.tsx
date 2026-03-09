@@ -54,7 +54,7 @@ function ReplaySection({
   ) : null;
 }
 
-export default function ReplayPreview({
+export function ReplayPreview({
   event,
   organization,
 }: {

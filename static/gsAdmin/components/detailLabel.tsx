@@ -25,7 +25,7 @@ type Props = {
 /**
  * Detail label is used within DetailList
  */
-function DetailLabel({title, yesNo, multiLine, children}: Props) {
+export function DetailLabel({title, yesNo, multiLine, children}: Props) {
   return (
     <Fragment>
       <dt>{title}:</dt>
@@ -47,5 +47,3 @@ const Value = styled('dd')<{multiLine: boolean}>`
       gap: ${space(0.5)};
     `};
 `;
-
-export default DetailLabel;

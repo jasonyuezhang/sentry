@@ -8,11 +8,11 @@ import {LinkButton} from '@sentry/scraps/button';
 import type {RenderProps} from 'sentry/components/charts/eventsRequest';
 import EventsRequest from 'sentry/components/charts/eventsRequest';
 import {getInterval} from 'sentry/components/charts/utils';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {normalizeDateTimeParams} from 'sentry/components/pageFilters/parse';
 import usePageFilters from 'sentry/components/pageFilters/usePageFilters';
-import PerformanceDuration from 'sentry/components/performanceDuration';
-import Truncate from 'sentry/components/truncate';
+import {PerformanceDuration} from 'sentry/components/performanceDuration';
+import {Truncate} from 'sentry/components/truncate';
 import {t} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
 import type {Series, SeriesDataUnit} from 'sentry/types/echarts';
@@ -100,7 +100,7 @@ function transformEventsChartRequest<T extends WidgetDataConstraint>(
   return childData;
 }
 
-function MobileReleaseComparisonListWidget(props: PerformanceWidgetProps) {
+export function MobileReleaseComparisonListWidget(props: PerformanceWidgetProps) {
   const api = useApi();
   const theme = useTheme();
   const pageFilter = usePageFilters();
@@ -410,8 +410,6 @@ function MobileReleaseComparisonListWidget(props: PerformanceWidgetProps) {
     />
   );
 }
-
-export default MobileReleaseComparisonListWidget;
 
 const StyledDurationWrapper = styled('div')`
   padding: 0 ${space(1)};

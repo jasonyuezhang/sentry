@@ -13,7 +13,7 @@ type Props = {
   noPadding?: boolean;
 };
 
-const PanelItem = styled('div')<Props>`
+export const PanelItem = styled('div')<Props>`
   display: flex;
   border-bottom: 1px solid ${p => p.theme.tokens.border.secondary};
   ${p => p.noPadding || `padding: ${space(2)}`};
@@ -23,5 +23,3 @@ const PanelItem = styled('div')<Props>`
     border: 0;
   }
 `;
-
-export default PanelItem;

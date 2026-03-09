@@ -9,8 +9,8 @@ import {t} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
 import type {EventGroupComponent} from 'sentry/types/event';
 
-import GroupingComponentChildren from './groupingComponentChildren';
-import GroupingComponentStacktrace from './groupingComponentStacktrace';
+import {GroupingComponentChildren} from './groupingComponentChildren';
+import {GroupingComponentStacktrace} from './groupingComponentStacktrace';
 import {shouldInlineComponentValue} from './utils';
 
 type Props = {

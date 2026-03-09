@@ -4,7 +4,7 @@ import {PanelTable} from 'sentry/components/panels/panelTable';
 import {t} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
 import type {IssueAttachment} from 'sentry/types/group';
-import GroupEventAttachmentsTableRow from 'sentry/views/issueDetails/groupEventAttachments/groupEventAttachmentsTableRow';
+import {GroupEventAttachmentsTableRow} from 'sentry/views/issueDetails/groupEventAttachments/groupEventAttachmentsTableRow';
 
 type Props = {
   attachments: IssueAttachment[];
@@ -15,7 +15,7 @@ type Props = {
   projectSlug: string;
 };
 
-function GroupEventAttachmentsTable({
+export function GroupEventAttachmentsTable({
   isLoading,
   attachments,
   projectSlug,
@@ -42,8 +42,6 @@ function GroupEventAttachmentsTable({
     </AttachmentsPanelTable>
   );
 }
-
-export default GroupEventAttachmentsTable;
 
 const AttachmentsPanelTable = styled(PanelTable)`
   grid-template-columns: 1fr repeat(3, min-content);

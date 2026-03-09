@@ -8,12 +8,12 @@ import type {RequestOptions} from 'sentry/api';
 import Form from 'sentry/components/forms/form';
 import JsonForm from 'sentry/components/forms/jsonForm';
 import type {Data, JsonFormObject} from 'sentry/components/forms/types';
-import HookOrDefault from 'sentry/components/hookOrDefault';
-import LoadingError from 'sentry/components/loadingError';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
-import Panel from 'sentry/components/panels/panel';
-import PanelItem from 'sentry/components/panels/panelItem';
-import SentryDocumentTitle from 'sentry/components/sentryDocumentTitle';
+import {HookOrDefault} from 'sentry/components/hookOrDefault';
+import {LoadingError} from 'sentry/components/loadingError';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
+import {Panel} from 'sentry/components/panels/panel';
+import {PanelItem} from 'sentry/components/panels/panelItem';
+import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {t} from 'sentry/locale';
 import {PluginIcon} from 'sentry/plugins/components/pluginIcon';
 import type {ObjectStatus} from 'sentry/types/core';
@@ -42,7 +42,7 @@ import type {
 import IntegrationLayout from 'sentry/views/settings/organizationIntegrations/detailedView/integrationLayout';
 import {useIntegrationTabs} from 'sentry/views/settings/organizationIntegrations/detailedView/useIntegrationTabs';
 import InstalledIntegration from 'sentry/views/settings/organizationIntegrations/installedIntegration';
-import IntegrationButton from 'sentry/views/settings/organizationIntegrations/integrationButton';
+import {IntegrationButton} from 'sentry/views/settings/organizationIntegrations/integrationButton';
 import {IntegrationContext} from 'sentry/views/settings/organizationIntegrations/integrationContext';
 
 // Show the features tab if the org has features for the integration

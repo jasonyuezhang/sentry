@@ -4,7 +4,7 @@ import {RouterFixture} from 'sentry-fixture/routerFixture';
 
 import {render} from 'sentry-test/reactTestingLibrary';
 
-import OrganizationRepositories from 'sentry/views/settings/organizationRepositories/organizationRepositories';
+import {OrganizationRepositories} from 'sentry/views/settings/organizationRepositories/organizationRepositories';
 
 describe('OrganizationRepositories', () => {
   const org = OrganizationFixture();

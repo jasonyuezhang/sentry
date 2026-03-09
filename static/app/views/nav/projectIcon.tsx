@@ -12,7 +12,11 @@ interface ProjectIconProps {
   className?: string;
 }
 
-function ProjectIcon({projectPlatforms, allProjects, className}: ProjectIconProps) {
+export function ProjectIcon({
+  projectPlatforms,
+  allProjects,
+  className,
+}: ProjectIconProps) {
   let renderedIcons: React.ReactNode;
 
   switch (projectPlatforms.length) {
@@ -93,5 +97,3 @@ const PlatformIconWrapper = styled('div')<{index: number}>`
       right: 0;
     `}
 `;
-
-export default ProjectIcon;

@@ -6,9 +6,7 @@ type Props = {
   noMargin?: boolean;
 };
 
-const TextBlock = styled('div')<Props>`
+export const TextBlock = styled('div')<Props>`
   line-height: 1.5;
   ${p => (p.noMargin ? '' : 'margin-bottom:' + space(3))};
 `;
-
-export default TextBlock;

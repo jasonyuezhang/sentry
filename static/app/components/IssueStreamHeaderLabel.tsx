@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 
 import {space} from 'sentry/styles/space';
 
-const IssueStreamHeaderLabel = styled('div')<{
+export const IssueStreamHeaderLabel = styled('div')<{
   align?: 'left' | 'right';
   breakpoint?: string;
   hideDivider?: boolean;
@@ -49,5 +49,3 @@ const IssueStreamHeaderLabel = styled('div')<{
       }
     `}
 `;
-
-export default IssueStreamHeaderLabel;

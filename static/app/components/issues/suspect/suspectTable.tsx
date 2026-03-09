@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 
 import {SegmentedControl} from '@sentry/scraps/segmentedControl';
 
-import SuspectFlags from 'sentry/components/issues/suspect/suspectFlags';
+import {SuspectFlags} from 'sentry/components/issues/suspect/suspectFlags';
 import useSuspectFlags from 'sentry/components/issues/suspect/useSuspectFlags';
 import type {Group} from 'sentry/types/group';
 
@@ -12,7 +12,7 @@ interface Props {
   group: Group;
 }
 
-export default function SuspectTable({environments, group}: Props) {
+export function SuspectTable({environments, group}: Props) {
   const [displayMode, setDisplayMode] = useState<'filters' | 'filter_rrf' | 'rrf'>(
     'filters'
   );

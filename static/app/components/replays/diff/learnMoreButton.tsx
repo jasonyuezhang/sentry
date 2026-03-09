@@ -60,7 +60,7 @@ function Buttons() {
   );
 }
 
-export default function LearnMoreButton(
+export function LearnMoreButton(
   hoverCardProps: Partial<ComponentProps<typeof Hovercard>>
 ) {
   return (

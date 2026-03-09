@@ -22,7 +22,7 @@ type Props = {
   organization: Organization;
 };
 
-function MissingPerformanceButtons({organization}: Props) {
+export function MissingPerformanceButtons({organization}: Props) {
   const router = useRouter();
   const {projects} = useProjects();
   const {
@@ -85,5 +85,3 @@ function MissingPerformanceButtons({organization}: Props) {
     </Feature>
   );
 }
-
-export default MissingPerformanceButtons;

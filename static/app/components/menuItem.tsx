@@ -74,7 +74,7 @@ type MenuItemProps = {
 interface Props
   extends MenuItemProps, Omit<React.HTMLAttributes<HTMLLIElement>, 'onSelect'> {}
 
-function MenuItem({
+export function MenuItem({
   header,
   icon,
   divider,
@@ -291,5 +291,3 @@ const MenuTarget = styled('span')<MenuListItemProps>`
 const MenuLink = styled(Link, {shouldForwardProp})<MenuListItemProps>`
   ${getListItemStyles}
 `;
-
-export default MenuItem;

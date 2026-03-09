@@ -6,12 +6,12 @@ import {Tag} from '@sentry/scraps/badge';
 import {Button, LinkButton} from '@sentry/scraps/button';
 import {Flex, Grid} from '@sentry/scraps/layout';
 
-import HotkeysLabel from 'sentry/components/hotkeysLabel';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {HotkeysLabel} from 'sentry/components/hotkeysLabel';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {Overlay} from 'sentry/components/overlay';
 import type {BooleanOperator, SearchConfig} from 'sentry/components/searchSyntax/parser';
 import {parseSearch} from 'sentry/components/searchSyntax/parser';
-import HighlightQuery from 'sentry/components/searchSyntax/renderer';
+import {HighlightQuery} from 'sentry/components/searchSyntax/renderer';
 import {IconOpen} from 'sentry/icons';
 import {t, tct} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
@@ -54,7 +54,7 @@ type Props = {
   visibleShortcuts?: Shortcut[];
 };
 
-function SearchDropdown({
+export function SearchDropdown({
   className,
   loading,
   items,
@@ -169,8 +169,6 @@ function SearchDropdown({
     </SearchDropdownOverlay>
   );
 }
-
-export default SearchDropdown;
 
 type HeaderItemProps = {
   group: SearchGroup;

@@ -2,17 +2,17 @@ import {AlertLink} from '@sentry/scraps/alert';
 import {LinkButton} from '@sentry/scraps/button';
 import {ExternalLink} from '@sentry/scraps/link';
 
-import EmptyMessage from 'sentry/components/emptyMessage';
-import Panel from 'sentry/components/panels/panel';
-import PanelBody from 'sentry/components/panels/panelBody';
-import PanelHeader from 'sentry/components/panels/panelHeader';
-import RepositoryRow from 'sentry/components/repositoryRow';
+import {EmptyMessage} from 'sentry/components/emptyMessage';
+import {Panel} from 'sentry/components/panels/panel';
+import {PanelBody} from 'sentry/components/panels/panelBody';
+import {PanelHeader} from 'sentry/components/panels/panelHeader';
+import {RepositoryRow} from 'sentry/components/repositoryRow';
 import {IconCommit} from 'sentry/icons';
 import {t, tct} from 'sentry/locale';
 import type {Repository, RepositoryStatus} from 'sentry/types/integrations';
 import type {Organization} from 'sentry/types/organization';
-import SettingsPageHeader from 'sentry/views/settings/components/settingsPageHeader';
-import TextBlock from 'sentry/views/settings/components/text/textBlock';
+import {SettingsPageHeader} from 'sentry/views/settings/components/settingsPageHeader';
+import {TextBlock} from 'sentry/views/settings/components/text/textBlock';
 
 type Props = {
   itemList: Repository[];
@@ -20,7 +20,11 @@ type Props = {
   organization: Organization;
 };
 
-function OrganizationRepositories({itemList, onRepositoryChange, organization}: Props) {
+export function OrganizationRepositories({
+  itemList,
+  onRepositoryChange,
+  organization,
+}: Props) {
   const hasItemList = itemList && itemList.length > 0;
 
   return (
@@ -84,5 +88,3 @@ function OrganizationRepositories({itemList, onRepositoryChange, organization}: 
     </div>
   );
 }
-
-export default OrganizationRepositories;

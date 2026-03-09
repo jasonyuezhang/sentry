@@ -15,7 +15,7 @@ import {getIdFromLocation} from 'sentry/views/explore/contexts/pageParamsContext
 import {type SavedQuery} from 'sentry/views/explore/hooks/useGetSavedQueries';
 import {useReorderStarredSavedQueries} from 'sentry/views/explore/hooks/useReorderStarredSavedQueries';
 import {getSavedQueryTraceItemUrl} from 'sentry/views/explore/utils';
-import ProjectIcon from 'sentry/views/nav/projectIcon';
+import {ProjectIcon} from 'sentry/views/nav/projectIcon';
 import {SecondaryNav} from 'sentry/views/nav/secondary/secondary';
 
 type Props = {

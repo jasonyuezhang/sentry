@@ -11,7 +11,7 @@ import {Select} from '@sentry/scraps/select';
 import {addErrorMessage} from 'sentry/actionCreators/indicator';
 import type {ModalRenderProps} from 'sentry/actionCreators/modal';
 import type {Client} from 'sentry/api';
-import FieldGroup from 'sentry/components/forms/fieldGroup';
+import {FieldGroup} from 'sentry/components/forms/fieldGroup';
 import {t, tct} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
 import type {Organization} from 'sentry/types/organization';
@@ -19,7 +19,7 @@ import type {Project} from 'sentry/types/project';
 import {defined} from 'sentry/utils';
 import type EventView from 'sentry/utils/discover/eventView';
 import withApi from 'sentry/utils/withApi';
-import withProjects from 'sentry/utils/withProjects';
+import {withProjects} from 'sentry/utils/withProjects';
 
 import {useEventViewProject} from './useEventViewProject';
 import {transactionSummaryRouteWithQuery} from './utils';

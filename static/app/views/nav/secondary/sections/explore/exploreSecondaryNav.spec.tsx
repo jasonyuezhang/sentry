@@ -1,7 +1,7 @@
 import {initializeOrg} from 'sentry-test/initializeOrg';
 import {render, screen} from 'sentry-test/reactTestingLibrary';
 
-import Nav from 'sentry/views/nav';
+import {Nav} from 'sentry/views/nav';
 import {NavContextProvider} from 'sentry/views/nav/context';
 
 describe('ExploreSecondaryNav', () => {

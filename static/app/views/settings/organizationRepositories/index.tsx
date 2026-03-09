@@ -1,9 +1,9 @@
 import {Fragment} from 'react';
 
-import LoadingError from 'sentry/components/loadingError';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingError} from 'sentry/components/loadingError';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import Pagination from 'sentry/components/pagination';
-import SentryDocumentTitle from 'sentry/components/sentryDocumentTitle';
+import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {t} from 'sentry/locale';
 import type {Repository} from 'sentry/types/integrations';
 import getApiUrl from 'sentry/utils/api/getApiUrl';
@@ -11,7 +11,7 @@ import {setApiQueryData, useApiQuery, useQueryClient} from 'sentry/utils/queryCl
 import {useLocation} from 'sentry/utils/useLocation';
 import useOrganization from 'sentry/utils/useOrganization';
 
-import OrganizationRepositories from './organizationRepositories';
+import {OrganizationRepositories} from './organizationRepositories';
 
 function OrganizationRepositoriesContainer() {
   const organization = useOrganization();

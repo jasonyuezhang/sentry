@@ -10,21 +10,21 @@ import {Link} from '@sentry/scraps/link';
 import {Heading, Text} from '@sentry/scraps/text';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import EventOrGroupTitle from 'sentry/components/eventOrGroupTitle';
+import {EventOrGroupTitle} from 'sentry/components/eventOrGroupTitle';
 import {
   CrumbContainer,
   NavigationCrumbs,
   ShortId,
 } from 'sentry/components/events/eventDrawer';
-import EventMessage from 'sentry/components/events/eventMessage';
+import {EventMessage} from 'sentry/components/events/eventMessage';
 import StackTraceContent from 'sentry/components/events/interfaces/crashContent/stackTrace/content';
 import {NativeContent} from 'sentry/components/events/interfaces/crashContent/stackTrace/nativeContent';
 import findBestThread from 'sentry/components/events/interfaces/threads/threadSelector/findBestThread';
 import getThreadStacktrace from 'sentry/components/events/interfaces/threads/threadSelector/getThreadStacktrace';
 import {isStacktraceNewestFirst} from 'sentry/components/events/interfaces/utils';
 import {DrawerBody, DrawerHeader} from 'sentry/components/globalDrawer/components';
-import TimesTag from 'sentry/components/group/inboxBadges/timesTag';
-import UnhandledTag from 'sentry/components/group/inboxBadges/unhandledTag';
+import {TimesTag} from 'sentry/components/group/inboxBadges/timesTag';
+import {UnhandledTag} from 'sentry/components/group/inboxBadges/unhandledTag';
 import ProjectBadge from 'sentry/components/idBadge/projectBadge';
 import GroupList from 'sentry/components/issues/groupList';
 import usePageFilters from 'sentry/components/pageFilters/usePageFilters';

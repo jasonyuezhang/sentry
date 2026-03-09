@@ -16,7 +16,7 @@ import {useUser} from 'sentry/utils/useUser';
 import {useReorderStarredDashboards} from 'sentry/views/dashboards/hooks/useReorderStarredDashboards';
 import type {DashboardListItem} from 'sentry/views/dashboards/types';
 import {getIdFromLocation} from 'sentry/views/explore/contexts/pageParamsContext/id';
-import ProjectIcon from 'sentry/views/nav/projectIcon';
+import {ProjectIcon} from 'sentry/views/nav/projectIcon';
 import {SecondaryNav} from 'sentry/views/nav/secondary/secondary';
 
 type DashboardsNavItemsProps = {

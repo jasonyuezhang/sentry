@@ -25,7 +25,7 @@ interface Props {
   }>;
 }
 
-export default function FeatureFlagSort({
+export function FeatureFlagSort({
   sortBy,
   orderBy,
   setOrderBy,

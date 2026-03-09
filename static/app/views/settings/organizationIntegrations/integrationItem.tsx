@@ -11,7 +11,7 @@ type Props = {
   compact?: boolean;
 };
 
-function IntegrationItem({integration, compact = false}: Props) {
+export function IntegrationItem({integration, compact = false}: Props) {
   return (
     <Flex align="center">
       <div>
@@ -26,8 +26,6 @@ function IntegrationItem({integration, compact = false}: Props) {
     </Flex>
   );
 }
-
-export default IntegrationItem;
 
 const Labels = styled('div')<{compact: boolean}>`
   box-sizing: border-box;

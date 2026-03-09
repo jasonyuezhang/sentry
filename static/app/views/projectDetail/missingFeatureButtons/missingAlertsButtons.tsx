@@ -12,7 +12,7 @@ type Props = {
   projectSlug: string;
 };
 
-function MissingAlertsButtons({organization, projectSlug}: Props) {
+export function MissingAlertsButtons({organization, projectSlug}: Props) {
   return (
     <Grid flow="column" align="center" gap="md">
       <CreateAlertButton
@@ -32,5 +32,3 @@ function MissingAlertsButtons({organization, projectSlug}: Props) {
     </Grid>
   );
 }
-
-export default MissingAlertsButtons;

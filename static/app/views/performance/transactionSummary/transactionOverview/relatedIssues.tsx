@@ -10,8 +10,8 @@ import {SectionHeading} from 'sentry/components/charts/styles';
 import EmptyStateWarning from 'sentry/components/emptyStateWarning';
 import GroupList from 'sentry/components/issues/groupList';
 import {URL_PARAM} from 'sentry/components/pageFilters/constants';
-import Panel from 'sentry/components/panels/panel';
-import PanelBody from 'sentry/components/panels/panelBody';
+import {Panel} from 'sentry/components/panels/panel';
+import {PanelBody} from 'sentry/components/panels/panelBody';
 import {DEFAULT_RELATIVE_PERIODS} from 'sentry/constants';
 import {t, tct} from 'sentry/locale';
 import {space} from 'sentry/styles/space';
@@ -31,7 +31,7 @@ type Props = {
   statsPeriod?: string | null;
 };
 
-function RelatedIssues({
+export function RelatedIssues({
   location,
   organization,
   transaction,
@@ -140,5 +140,3 @@ const TableWrapper = styled('div')`
     margin-bottom: -${space(1)};
   }
 `;
-
-export default RelatedIssues;

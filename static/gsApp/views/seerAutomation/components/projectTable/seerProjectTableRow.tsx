@@ -18,7 +18,7 @@ import type {
 } from 'sentry/components/events/autofix/preferences/hooks/useBulkAutofixAutomationSettings';
 import ProjectBadge from 'sentry/components/idBadge/projectBadge';
 import Placeholder from 'sentry/components/placeholder';
-import QuestionTooltip from 'sentry/components/questionTooltip';
+import {QuestionTooltip} from 'sentry/components/questionTooltip';
 import {SimpleTable} from 'sentry/components/tables/simpleTable';
 import {IconWarning} from 'sentry/icons/iconWarning';
 import {t} from 'sentry/locale';
@@ -37,7 +37,7 @@ interface Props {
   >['mutate'];
 }
 
-export default function SeerProjectTableRow({
+export function SeerProjectTableRow({
   autofixSettings,
   isFetchingSettings,
   updateBulkAutofixAutomationSettings,

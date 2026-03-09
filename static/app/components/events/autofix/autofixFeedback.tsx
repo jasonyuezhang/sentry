@@ -1,11 +1,11 @@
-import FeedbackButton from 'sentry/components/feedbackButton/feedbackButton';
+import {FeedbackButton} from 'sentry/components/feedbackButton/feedbackButton';
 import {t} from 'sentry/locale';
 
 interface AutofixFeedbackProps {
   iconOnly?: boolean;
 }
 
-export default function AutofixFeedback(
+export function AutofixFeedback(
   {iconOnly = false}: AutofixFeedbackProps = {iconOnly: false}
 ) {
   const buttonProps = {

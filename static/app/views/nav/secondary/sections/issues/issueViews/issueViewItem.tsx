@@ -15,7 +15,7 @@ import useOrganization from 'sentry/utils/useOrganization';
 import useProjects from 'sentry/utils/useProjects';
 import {useIssueViewUnsavedChanges} from 'sentry/views/issueList/issueViews/useIssueViewUnsavedChanges';
 import {useNavContext} from 'sentry/views/nav/context';
-import ProjectIcon from 'sentry/views/nav/projectIcon';
+import {ProjectIcon} from 'sentry/views/nav/projectIcon';
 import {SecondaryNav} from 'sentry/views/nav/secondary/secondary';
 import {IssueViewQueryCount} from 'sentry/views/nav/secondary/sections/issues/issueViews/issueViewQueryCount';
 import {

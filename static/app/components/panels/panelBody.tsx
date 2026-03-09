@@ -7,9 +7,7 @@ type BaseProps = {
   withPadding?: boolean;
 };
 
-const PanelBody = styled('div')<BaseProps>`
+export const PanelBody = styled('div')<BaseProps>`
   ${p => p.withPadding && `padding: ${space(2)}`};
   ${textStyles};
 `;
-
-export default PanelBody;

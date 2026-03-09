@@ -6,8 +6,8 @@ import {Button} from '@sentry/scraps/button';
 import {Flex, type FlexProps} from '@sentry/scraps/layout';
 
 import {HighlightComponent} from 'sentry/components/highlight';
-import PageFilterBar from 'sentry/components/pageFilters/pageFilterBar';
-import Panel from 'sentry/components/panels/panel';
+import {PageFilterBar} from 'sentry/components/pageFilters/pageFilterBar';
+import {Panel} from 'sentry/components/panels/panel';
 import {GRID_BODY_ROW_HEIGHT} from 'sentry/components/tables/gridEditable/styles';
 import {space} from 'sentry/styles/space';
 import {NumberContainer} from 'sentry/utils/discover/styles';

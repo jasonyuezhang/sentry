@@ -10,8 +10,8 @@ import {
   useUpdateBulkAutofixAutomationSettings,
   type AutofixAutomationSettings,
 } from 'sentry/components/events/autofix/preferences/hooks/useBulkAutofixAutomationSettings';
-import LoadingError from 'sentry/components/loadingError';
-import LoadingIndicator from 'sentry/components/loadingIndicator';
+import {LoadingError} from 'sentry/components/loadingError';
+import {LoadingIndicator} from 'sentry/components/loadingIndicator';
 import {SimpleTable} from 'sentry/components/tables/simpleTable';
 import {IconSearch} from 'sentry/icons/iconSearch';
 import {t, tct} from 'sentry/locale';
@@ -22,8 +22,8 @@ import type {ApiQueryKey} from 'sentry/utils/queryClient';
 import parseAsSort from 'sentry/utils/url/parseAsSort';
 import useProjects from 'sentry/utils/useProjects';
 
-import ProjectTableHeader from 'getsentry/views/seerAutomation/components/projectTable/seerProjectTableHeader';
-import SeerProjectTableRow from 'getsentry/views/seerAutomation/components/projectTable/seerProjectTableRow';
+import {ProjectTableHeader} from 'getsentry/views/seerAutomation/components/projectTable/seerProjectTableHeader';
+import {SeerProjectTableRow} from 'getsentry/views/seerAutomation/components/projectTable/seerProjectTableRow';
 
 function getDefaultAutofixSettings(projectId: string): AutofixAutomationSettings {
   return {
@@ -35,7 +35,7 @@ function getDefaultAutofixSettings(projectId: string): AutofixAutomationSettings
   };
 }
 
-export default function SeerProjectTable() {
+export function SeerProjectTable() {
   const {projects, fetching, fetchError} = useProjects();
 
   const {pages: autofixAutomationSettings, isFetching: isFetchingSettings} =

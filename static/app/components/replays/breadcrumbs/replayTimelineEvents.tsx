@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import {Container} from '@sentry/scraps/layout';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import BreadcrumbItem from 'sentry/components/replays/breadcrumbs/breadcrumbItem';
+import {BreadcrumbItem} from 'sentry/components/replays/breadcrumbs/breadcrumbItem';
 import * as Timeline from 'sentry/components/replays/breadcrumbs/timeline';
 import {getFramesByColumn} from 'sentry/components/replays/utils';
 import {space} from 'sentry/styles/space';
@@ -26,7 +26,7 @@ interface Props {
   className?: string;
 }
 
-export default function ReplayTimelineEvents({
+export function ReplayTimelineEvents({
   className,
   durationMs,
   frames,

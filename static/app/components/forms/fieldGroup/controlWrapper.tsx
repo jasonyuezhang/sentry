@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 import {space} from 'sentry/styles/space';
 
-import FieldControlState from './fieldControlState';
+import {FieldControlState} from './fieldControlState';
 import type {FieldGroupProps} from './types';
 
 interface ControlWrapperProps extends Pick<

@@ -8,20 +8,20 @@ import {
   EventNavigator,
   EventStickyControls,
 } from 'sentry/components/events/eventDrawer';
-import FeatureFlagSort from 'sentry/components/events/featureFlags/featureFlagSort';
+import {FeatureFlagSort} from 'sentry/components/events/featureFlags/featureFlagSort';
 import {OrderBy, SortBy} from 'sentry/components/events/featureFlags/utils';
-import SuspectTable from 'sentry/components/issues/suspect/suspectTable';
+import {SuspectTable} from 'sentry/components/issues/suspect/suspectTable';
 import {t} from 'sentry/locale';
 import type {Group} from 'sentry/types/group';
 import type {Organization} from 'sentry/types/organization';
 import {trackAnalytics} from 'sentry/utils/analytics';
 import {useParams} from 'sentry/utils/useParams';
-import GroupDistributionsSearchInput from 'sentry/views/issueDetails/groupDistributions/groupDistributionsSearchInput';
-import HeaderTitle from 'sentry/views/issueDetails/groupDistributions/headerTitle';
-import TagFlagPicker from 'sentry/views/issueDetails/groupDistributions/tagFlagPicker';
+import {GroupDistributionsSearchInput} from 'sentry/views/issueDetails/groupDistributions/groupDistributionsSearchInput';
+import {HeaderTitle} from 'sentry/views/issueDetails/groupDistributions/headerTitle';
+import {TagFlagPicker} from 'sentry/views/issueDetails/groupDistributions/tagFlagPicker';
 import {DrawerTab} from 'sentry/views/issueDetails/groupDistributions/types';
 import {FlagDetailsDrawerContent} from 'sentry/views/issueDetails/groupFeatureFlags/details/flagDetailsDrawerContent';
-import FlagDrawerContent from 'sentry/views/issueDetails/groupFeatureFlags/flagDrawerContent';
+import {FlagDrawerContent} from 'sentry/views/issueDetails/groupFeatureFlags/flagDrawerContent';
 import {useEnvironmentsFromUrl} from 'sentry/views/issueDetails/utils';
 
 interface Props {
@@ -30,7 +30,7 @@ interface Props {
   setTab: (value: DrawerTab) => void;
 }
 
-export default function FlagsDistributionDrawer({group, organization, setTab}: Props) {
+export function FlagsDistributionDrawer({group, organization, setTab}: Props) {
   const environments = useEnvironmentsFromUrl();
   const {tagKey} = useParams<{tagKey: string}>();
 

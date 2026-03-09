@@ -27,7 +27,7 @@ const loadingLabels = [
   t(`It's probably the one that just changed...`),
 ];
 
-export default function SuspectFlags({isPending, susFlags}: Props) {
+export function SuspectFlags({isPending, susFlags}: Props) {
   const location = useLocation();
   const {baseUrl} = useGroupDetailsRoute();
   const loadingLabelRef = useRef(

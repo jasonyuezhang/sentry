@@ -43,7 +43,7 @@ function getVitalStateText(vital: WebVital | WebVital[], vitalState: any) {
   }
 }
 
-export default function VitalPercents(props: Props) {
+export function VitalPercents(props: Props) {
   return (
     <VitalSet>
       {props.percents.map(pct => (

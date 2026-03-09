@@ -2,11 +2,11 @@ import {Outlet} from 'react-router-dom';
 
 import {Flex} from '@sentry/scraps/layout';
 
-import SentryDocumentTitle from 'sentry/components/sentryDocumentTitle';
+import {SentryDocumentTitle} from 'sentry/components/sentryDocumentTitle';
 import {t} from 'sentry/locale';
 import {PrimaryNavGroup} from 'sentry/views/nav/types';
 import {BreadcrumbProvider} from 'sentry/views/settings/components/settingsBreadcrumb/context';
-import SettingsLayout from 'sentry/views/settings/components/settingsLayout';
+import {SettingsLayout} from 'sentry/views/settings/components/settingsLayout';
 import SettingsNavigation from 'sentry/views/settings/components/settingsNavigation';
 
 // TODO: Move this to /views/nav/secondary/sections/admin/adminSecondaryNav.tsx when new navigation is GA'd
