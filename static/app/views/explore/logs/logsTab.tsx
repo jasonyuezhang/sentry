@@ -475,6 +475,7 @@ export function LogsTabContent({datePageFilterProps}: LogsTabProps) {
               <LogsInfiniteTable
                 stringAttributes={stringAttributes}
                 numberAttributes={numberAttributes}
+                booleanAttributes={booleanAttributes}
               />
             ) : (
               <LogsAggregateTable aggregatesTableResult={aggregatesTableResult} />
