@@ -1,12 +1,11 @@
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useTheme} from '@emotion/react';
 import {FocusScope} from '@react-aria/focus';
 import {useVirtualizer} from '@tanstack/react-virtual';
 
 import {Tag} from '@sentry/scraps/badge';
 import {LeadWrap} from '@sentry/scraps/compactSelect';
 import {InputGroup} from '@sentry/scraps/input';
-import {Container, Flex} from '@sentry/scraps/layout';
+import {Container, Flex, Stack} from '@sentry/scraps/layout';
 import {MenuListItem} from '@sentry/scraps/menuListItem';
 import {OverlayTrigger} from '@sentry/scraps/overlayTrigger';
 import {Text} from '@sentry/scraps/text';
@@ -240,8 +239,7 @@ export function MetricSelector({
           <Overlay style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
             <FocusScope contain restoreFocus>
               <Flex direction={{xs: 'column', sm: 'row'}}>
-                <Flex
-                  direction="column"
+                <Stack
                   minWidth="300px"
                   minHeight="0"
                   borderRight={{sm: 'primary'}}
@@ -323,19 +321,17 @@ export function MetricSelector({
                         </Text>
                       </Flex>
                     ) : (
-                      <div
-                        style={{
-                          height: virtualizer.getTotalSize(),
-                          width: '100%',
-                          position: 'relative',
-                        }}
+                      <Container
+                        width="100%"
+                        position="relative"
+                        style={{height: virtualizer.getTotalSize()}}
                       >
-                        <div
+                        <Container
+                          width="100%"
+                          position="absolute"
+                          top={0}
+                          left={0}
                           style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
                             transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
                           }}
                         >
@@ -362,11 +358,9 @@ export function MetricSelector({
                                   isSelected={isSelected}
                                   priority={isSelected ? 'primary' : 'default'}
                                   leadingItems={
-                                    <Fragment>
-                                      <LeadWrap aria-hidden="true">
-                                        {isSelected && <IconCheckmark size="sm" />}
-                                      </LeadWrap>
-                                    </Fragment>
+                                    <LeadWrap aria-hidden="true">
+                                      {isSelected && <IconCheckmark size="sm" />}
+                                    </LeadWrap>
                                   }
                                   trailingItems={
                                     <Flex gap="xs" align="center" flexShrink={0}>
@@ -385,11 +379,11 @@ export function MetricSelector({
                               </div>
                             );
                           })}
-                        </div>
-                      </div>
+                        </Container>
+                      </Container>
                     )}
                   </Container>
-                </Flex>
+                </Stack>
                 <Container width={{sm: '280px'}} padding="lg" minHeight={{sm: '200px'}}>
                   <MetricDetailPanel
                     metric={highlightedOption ?? optionFromTraceMetric}
@@ -421,7 +415,7 @@ function MetricDetailPanel({
   }
 
   return (
-    <Flex direction="column" gap="md">
+    <Stack gap="md">
       <Text bold>{metric.metricName}</Text>
       <Flex gap="xs" align="center">
         <Text variant="muted" size="sm">
@@ -440,7 +434,7 @@ function MetricDetailPanel({
             <Tag variant="promotion">{metric.metricUnit}</Tag>
           </Flex>
         )}
-    </Flex>
+    </Stack>
   );
 }
 
