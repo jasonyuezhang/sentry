@@ -9,6 +9,10 @@ from django.utils import timezone
 from sentry_protos.snuba.v1.trace_item_pb2 import TraceItem
 
 from sentry.conf.types.uptime import UptimeRegionConfig
+from sentry.issues.grouptype import (
+    PerformanceFileIOMainThreadGroupType,
+    PerformanceSlowDBQueryGroupType,
+)
 from sentry.issues.ingest import save_issue_occurrence
 from sentry.issues.issue_occurrence import IssueOccurrence
 from sentry.models.group import Group
@@ -852,3 +856,45 @@ class OrganizationEventsTraceEndpointTest(
         occurrence = occurrences[0]
         assert occurrence["transaction"] == "uptime.check"
         assert occurrence["level"] == "error"
+
+    def _get_occurrences_by_type(self, data):
+        """Extract all occurrences from trace children, grouped by issue type."""
+        all_occurrences = []
+        for child in data[0].get("children", []):
+            all_occurrences.extend(child.get("occurrences", []))
+        by_type = {}
+        for o in all_occurrences:
+            by_type.setdefault(o.get("issue_type"), []).append(o)
+        return all_occurrences, by_type
+
+    def test_trace_filters_unreleased_issue_types(self) -> None:
+        """Test that unreleased issue types are filtered from trace results"""
+        self.load_trace()  # load_trace() creates both FileIO and SlowDB issues
+
+        file_io_visible_flag = PerformanceFileIOMainThreadGroupType.build_visible_feature_name()[0]
+        file_io_type = PerformanceFileIOMainThreadGroupType.type_id
+        slow_db_type = PerformanceSlowDBQueryGroupType.type_id
+
+        # Mock FileIO as unreleased
+        with mock.patch.object(PerformanceFileIOMainThreadGroupType, "released", False):
+            # Without feature flag - FileIO should be filtered out
+            with self.feature({**{f: True for f in self.FEATURES}, file_io_visible_flag: False}):
+                response = self.client_get(data={"timestamp": self.day_ago})
+
+            assert response.status_code == 200, response.content
+            assert len(response.data) == 1
+            all_occurrences, by_type = self._get_occurrences_by_type(response.data)
+            assert len(all_occurrences) == 1
+            assert len(by_type.get(file_io_type, [])) == 0
+            assert len(by_type.get(slow_db_type, [])) == 1
+
+            # With feature flag - FileIO should appear
+            with self.feature({**{f: True for f in self.FEATURES}, file_io_visible_flag: True}):
+                response = self.client_get(data={"timestamp": self.day_ago})
+
+            assert response.status_code == 200, response.content
+            assert len(response.data) == 1
+            all_occurrences, by_type = self._get_occurrences_by_type(response.data)
+            assert len(all_occurrences) == 2
+            assert len(by_type.get(file_io_type, [])) == 1
+            assert len(by_type.get(slow_db_type, [])) == 1
