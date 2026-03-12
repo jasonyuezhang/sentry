@@ -181,6 +181,8 @@ export class RenderField extends Component<RenderProps, State> {
       const project = sentryProjectsById[projectId];
       // TODO: add special formatting if deleted
       const mappedItem = mappedItemsByValue[mappedValue];
+      const mappedItemLabel =
+        mappedItem?.label ?? t('mapping %(index)s', {index: index + 1});
       return (
         <Item key={index}>
           <MappedItemValue>
@@ -214,7 +216,7 @@ export class RenderField extends Component<RenderProps, State> {
               onClick={() => handleDelete(index)}
               icon={<IconDelete color="gray300" />}
               size="sm"
-              aria-label={t('Delete')}
+              aria-label={t('Delete %(item)s mapping', {item: mappedItemLabel})}
             />
           </Container>
         </Item>
@@ -226,6 +228,7 @@ export class RenderField extends Component<RenderProps, State> {
         {existingValues.map(renderItem)}
         <Item>
           <Select
+            aria-label={t('Select mapped project')}
             placeholder={mappedValuePlaceholder}
             name="mappedDropdown"
             options={mappedItemOptions}
@@ -246,6 +249,7 @@ export class RenderField extends Component<RenderProps, State> {
           />
           <RightArrow size="xs" direction="right" />
           <Select
+            aria-label={t('Select Sentry project')}
             placeholder={t('Sentry project\u2026')}
             name="project"
             options={projectOptions}
@@ -268,7 +272,7 @@ export class RenderField extends Component<RenderProps, State> {
               priority="primary"
               onClick={handleAdd}
               icon={<IconAdd />}
-              aria-label={t('Add project')}
+              aria-label={t('Add project mapping')}
             />
           </Container>
           <FieldControlWrapper>

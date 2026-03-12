@@ -116,6 +116,9 @@ export default class ChoiceMapperField extends Component<ChoiceMapperFieldProps>
 
   hasValue = (value: InputFieldProps['value']) => defined(value) && !isEmptyObject(value);
 
+  getAccessibleLabel = (label: React.ReactNode, fallback: string) =>
+    typeof label === 'string' ? label : fallback;
+
   renderField = (props: ChoiceMapperFieldProps) => {
     const {
       onChange,
@@ -179,6 +182,7 @@ export default class ChoiceMapperField extends Component<ChoiceMapperFieldProps>
     const dropdown = (
       <CompactSelect
         {...addDropdown}
+        aria-label={this.getAccessibleLabel(addButtonText, t('Add item'))}
         emptyMessage={
           selectableValues.length === 0
             ? addDropdown.emptyMessage
@@ -223,10 +227,18 @@ export default class ChoiceMapperField extends Component<ChoiceMapperFieldProps>
             {mappedKeys.map((fieldKey, i) => (
               <Column key={fieldKey}>
                 <Control>
+                  {/**
+                   * Each select is visually associated with the row/column headers,
+                   * but react-select still needs an explicit accessible name.
+                   */}
                   <Select
                     {...(perItemMapping
                       ? mappedSelectors[itemKey]![fieldKey]
                       : mappedSelectors[fieldKey])}
+                    aria-label={t('%(item)s %(column)s', {
+                      item: this.getAccessibleLabel(valueMap[itemKey], itemKey),
+                      column: this.getAccessibleLabel(columnLabels[fieldKey], fieldKey),
+                    })}
                     height={30}
                     disabled={disabled}
                     onChange={(v: any) => setValue(itemKey, fieldKey, v ? v.value : null)}
@@ -240,7 +252,9 @@ export default class ChoiceMapperField extends Component<ChoiceMapperFieldProps>
                       size="sm"
                       disabled={disabled}
                       onClick={() => removeRow(itemKey)}
-                      aria-label={t('Delete')}
+                      aria-label={t('Delete %(item)s', {
+                        item: this.getAccessibleLabel(valueMap[itemKey], itemKey),
+                      })}
                     />
                   </Actions>
                 )}

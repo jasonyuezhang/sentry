@@ -42,10 +42,16 @@ describe('ProjectMapperField', () => {
   it('clicking add updates values with current dropdown values', async () => {
     render(<RenderField {...defaultProps} />);
 
-    await selectEvent.select(screen.getByText(/Sentry project/), 'beans');
-    await selectEvent.select(screen.getByText('mapped-dropdown-placeholder'), 'label 1');
+    await selectEvent.select(
+      screen.getByRole('textbox', {name: 'Select Sentry project'}),
+      'beans'
+    );
+    await selectEvent.select(
+      screen.getByRole('textbox', {name: 'Select mapped project'}),
+      'label 1'
+    );
 
-    await userEvent.click(screen.getByLabelText('Add project'));
+    await userEvent.click(screen.getByLabelText('Add project mapping'));
 
     expect(defaultProps.onBlur).toHaveBeenCalledWith(
       [
@@ -73,7 +79,7 @@ describe('ProjectMapperField', () => {
         ]}
       />
     );
-    await userEvent.click(screen.getAllByLabelText('Delete')[0]!);
+    await userEvent.click(screen.getByRole('button', {name: 'Delete label 2 mapping'}));
 
     expect(defaultProps.onBlur).toHaveBeenCalledWith([[24, 1]], []);
     expect(defaultProps.onChange).toHaveBeenCalledWith([[24, 1]], []);
@@ -83,14 +89,32 @@ describe('ProjectMapperField', () => {
     render(<RenderField {...defaultProps} value={[[24, 1]]} />);
 
     // can find the same project again
-    await selectEvent.openMenu(screen.getByText(/Sentry project/));
+    await selectEvent.openMenu(
+      screen.getByRole('textbox', {name: 'Select Sentry project'})
+    );
     expect(screen.getAllByText('beans')).toHaveLength(2);
 
     // but not the value
-    await selectEvent.openMenu(screen.getByText('mapped-dropdown-placeholder'));
+    await selectEvent.openMenu(
+      screen.getByRole('textbox', {name: 'Select mapped project'})
+    );
     expect(screen.getByText('label 1')).toBeInTheDocument();
 
     // validate we can still find 2
     expect(screen.getByText('label 2')).toBeInTheDocument();
+  });
+
+  it('announces the mapping controls with accessible names', () => {
+    render(<RenderField {...defaultProps} />);
+
+    expect(
+      screen.getByRole('textbox', {name: 'Select mapped project'})
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', {name: 'Select Sentry project'})
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {name: 'Delete label 2 mapping'})
+    ).toBeInTheDocument();
   });
 });
