@@ -158,6 +158,47 @@ The following table defines standardized call to action copy and icon pairings f
 | <IconZoom />                               | `zoom`      | Zoom Out                               | Applies to charts and zooms out (i.e. 200%)               |
 | <IconStar />                               | `star`      | Favorite                               | Hoisting item to primary view                             |
 
+## Icon Padding Balance
+
+When a button has both an icon and a label, the left padding is proportionally reduced by one
+step to achieve visual balance. Icon-only buttons retain symmetric padding.
+
+<Storybook.Demo>
+  <Button size="md" icon={<IconAdd />}>
+    With label
+  </Button>
+  <Button size="md">No icon</Button>
+  <Button size="md" icon={<IconAdd />} aria-label="Add" />
+</Storybook.Demo>
+<Storybook.Demo>
+  <Button size="sm" icon={<IconAdd />}>
+    With label
+  </Button>
+  <Button size="sm">No icon</Button>
+  <Button size="sm" icon={<IconAdd />} aria-label="Add" />
+</Storybook.Demo>
+<Storybook.Demo>
+  <Button size="xs" icon={<IconAdd />}>
+    With label
+  </Button>
+  <Button size="xs">No icon</Button>
+  <Button size="xs" icon={<IconAdd />} aria-label="Add" />
+</Storybook.Demo>
+<Storybook.Demo>
+  <Button size="zero" icon={<IconAdd />}>
+    With label
+  </Button>
+  <Button size="zero">No icon</Button>
+  <Button size="zero" icon={<IconAdd />} aria-label="Add" />
+</Storybook.Demo>
+```jsx // Left padding reduced when icon + label — icon-only stays symmetric
+<Button size="md" icon={<IconAdd />}>
+  With label
+</Button>
+<Button size="md">No icon</Button>
+<Button size="md" icon={<IconAdd />} aria-label="Add" />
+```
+
 ## Disabled and Busy Buttons
 
 Disabled and busy buttons are used to indicate the status of an item. Busy buttons should be used to indicate that an action is in progress. Disabled buttons should be used to indicate that an action is not available.
