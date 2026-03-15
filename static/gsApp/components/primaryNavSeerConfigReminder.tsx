@@ -1,4 +1,5 @@
 import {Fragment, useEffect, useMemo} from 'react';
+import styled from '@emotion/styled';
 
 import {LinkButton} from '@sentry/scraps/button';
 import {Flex, Stack} from '@sentry/scraps/layout';
@@ -12,16 +13,19 @@ import {trackAnalytics} from 'sentry/utils/analytics';
 import getApiUrl from 'sentry/utils/api/getApiUrl';
 import {isActiveSuperuser} from 'sentry/utils/isActiveSuperuser';
 import {useApiQuery} from 'sentry/utils/queryClient';
-import {useOrganization} from 'sentry/utils/useOrganization';
-import {useNavigation} from 'sentry/views/navigation/navigationContext';
+import useOrganization from 'sentry/utils/useOrganization';
+import {useNavContext} from 'sentry/views/nav/context';
 import {
-  PrimaryButtonOverlay,
   SidebarButton,
   SidebarItemUnreadIndicator,
+} from 'sentry/views/nav/primary/components';
+import {
+  PrimaryButtonOverlay,
   usePrimaryButtonOverlay,
-} from 'sentry/views/navigation/primary/components';
+} from 'sentry/views/nav/primary/primaryButtonOverlay';
+import {NavLayout} from 'sentry/views/nav/types';
 
-import {useCanWriteSettings} from 'getsentry/views/seerAutomation/components/useCanWriteSettings';
+import useCanWriteSettings from 'getsentry/views/seerAutomation/components/useCanWriteSettings';
 import {useSeerOnboardingStep} from 'getsentry/views/seerAutomation/onboarding/hooks/useSeerOnboardingStep';
 import {Steps} from 'getsentry/views/seerAutomation/onboarding/types';
 
@@ -97,10 +101,6 @@ function useCanSeeReminder(organization: Organization) {
     [hasSeatBasedSeer, hasLegacySeer, hasCodeReviewBeta, initialStep]
   );
 
-  if (!organization.features.includes('seer-config-reminder')) {
-    return {canSeeReminder: false, analyticsParams};
-  }
-
   if (!hasSeer) {
     return {canSeeReminder: false, analyticsParams};
   }
@@ -126,57 +126,7 @@ function useCanSeeReminder(organization: Organization) {
   };
 }
 
-function useReminderCopywriting() {
-  const organization = useOrganization();
-  const {initialStep} = useSeerOnboardingStep();
-  const hasSeatBasedSeer = organization.features.includes('seat-based-seer-enabled');
-  const hasLegacySeer = organization.features.includes('seer-added');
-
-  const descriptionByStep: Record<
-    Steps,
-    {description: string; pathname: string; title: string} | null
-  > = {
-    [Steps.CONNECT_GITHUB]: {
-      title: t('Connect GitHub'),
-      description: t(
-        'Seer is enabled, but Github is not connected. Connect your GitHub account to enable Root Cause Analysis and Code Review.'
-      ),
-      pathname: hasLegacySeer
-        ? `/settings/${organization.slug}/seer/`
-        : `/settings/${organization.slug}/seer/onboarding/`,
-    },
-    [Steps.SETUP_ROOT_CAUSE_ANALYSIS]: {
-      title: t('Start using Seer\u2019s Issue Autofix'),
-      description: t(
-        'Seer is enabled but Root Cause Analysis is not configured. Configure Seer to automatically look at issues and generate code fixes.'
-      ),
-      pathname: hasLegacySeer
-        ? `/settings/${organization.slug}/seer/`
-        : `/settings/${organization.slug}/seer/onboarding/`,
-    },
-    [Steps.SETUP_CODE_REVIEW]: {
-      title: t('Start using Seer\u2019s AI Code Review'),
-      description: t(
-        'Seer is enabled but Code Review is not configured. Configure Seer to automatically review PRs and flag potential issues.'
-      ),
-      pathname: hasLegacySeer
-        ? `/settings/${organization.slug}/#enablePrReviewTestGeneration`
-        : `/settings/${organization.slug}/seer/onboarding/`,
-    },
-    [Steps.SETUP_DEFAULTS]: null,
-    [Steps.WRAP_UP]: null,
-  };
-
-  if (hasSeatBasedSeer) {
-    return descriptionByStep[initialStep];
-  }
-  if (hasLegacySeer) {
-    return descriptionByStep[Steps.SETUP_CODE_REVIEW];
-  }
-  return descriptionByStep[Steps.SETUP_ROOT_CAUSE_ANALYSIS];
-}
-
-export function PrimaryNavSeerConfigReminder() {
+export default function PrimaryNavSeerConfigReminder() {
   const organization = useOrganization();
   const {
     isOpen,
@@ -185,10 +135,12 @@ export function PrimaryNavSeerConfigReminder() {
     state,
   } = usePrimaryButtonOverlay();
 
-  const {layout} = useNavigation();
+  const {layout} = useNavContext();
+
+  const hasSeatBasedSeer = organization.features.includes('seat-based-seer-enabled');
+  const hasLegacySeer = organization.features.includes('seer-added');
 
   const {canSeeReminder, analyticsParams} = useCanSeeReminder(organization);
-  const copy = useReminderCopywriting();
 
   // Track impression on mount
   useEffect(() => {
@@ -200,34 +152,59 @@ export function PrimaryNavSeerConfigReminder() {
     }
   }, [canSeeReminder, analyticsParams, organization]);
 
-  if (!canSeeReminder || !copy) {
+  if (!canSeeReminder) {
     return null;
   }
 
   return (
     <Fragment>
-      <SidebarButton
+      <SeerButton
         analyticsKey="seer-config-reminder"
         analyticsParams={analyticsParams}
         label={t('Configure Seer')}
-        buttonProps={{
-          ...overlayTriggerProps,
-          icon: <IconSeer />,
-        }}
+        buttonProps={overlayTriggerProps}
       >
+        <IconSeer />
         <SidebarItemUnreadIndicator
           data-test-id="seer-config-reminder-indicator"
-          isMobile={layout === 'mobile'}
+          isMobile={layout === NavLayout.MOBILE}
         />
-      </SidebarButton>
+      </SeerButton>
       {isOpen && (
         <PrimaryButtonOverlay overlayProps={overlayProps}>
           <Stack gap="lg" padding="xl">
-            <Heading as="h3">{copy.title}</Heading>
-            <Text>{copy.description}</Text>
-            <Flex justify="start">
+            <Heading as="h3">
+              {hasSeatBasedSeer
+                ? t('Finish configuring Seer')
+                : hasLegacySeer
+                  ? t('Start using Seer\u2019s AI Code Review')
+                  : t('Start using Seer\u2019s Issue Autofix')}
+            </Heading>
+            <Text>
+              {hasSeatBasedSeer
+                ? t(
+                    'Seer is desperately waiting to fix your broken code. Please set it up. Your future self will thank you.'
+                  )
+                : hasLegacySeer
+                  ? t(
+                      'Seer will catch issues in your (likely prompted) PRs. Don’t forget to configure it before you tag a human for review.'
+                    )
+                  : t(
+                      'Seer will automatically root cause your issues, but only if you let it. Don’t forget to set that up.'
+                    )}
+            </Text>
+            <Flex justify="end">
               <LinkButton
-                to={copy.pathname}
+                to={{
+                  pathname: `/settings/${organization.slug}/seer/`,
+                  query: {
+                    tab: hasSeatBasedSeer
+                      ? undefined
+                      : hasLegacySeer
+                        ? 'repos'
+                        : undefined,
+                  },
+                }}
                 priority="primary"
                 onClick={() => state.close()}
                 analyticsEventName="Seer Config Reminder: Configure Now Clicked"
@@ -242,3 +219,12 @@ export function PrimaryNavSeerConfigReminder() {
     </Fragment>
   );
 }
+
+const SeerButton = styled(SidebarButton)`
+  display: none;
+
+  /* TODO(ryan953): Make this shorter once showPreventNav() is removed from PrimaryNavigationItems */
+  @media (min-height: 724px) {
+    display: flex;
+  }
+`;
