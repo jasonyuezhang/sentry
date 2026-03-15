@@ -61,6 +61,7 @@ import {DataSection} from 'sentry/components/events/styles';
 import {SuspectCommits} from 'sentry/components/events/suspectCommits';
 import {EventUserFeedback} from 'sentry/components/events/userFeedback';
 import Placeholder from 'sentry/components/placeholder';
+import {IssueStackTrace} from 'sentry/components/stackTrace/issueStackTrace';
 import {IconChevron} from 'sentry/icons';
 import {t} from 'sentry/locale';
 import type {Entry, Event, EventTransaction} from 'sentry/types/event';
@@ -70,7 +71,11 @@ import {IssueType} from 'sentry/types/group';
 import type {Project} from 'sentry/types/project';
 import {defined} from 'sentry/utils';
 import {getConfigForIssueType} from 'sentry/utils/issueTypeConfig';
-import {isJavascriptPlatform, isMobilePlatform} from 'sentry/utils/platform';
+import {
+  isJavascriptPlatform,
+  isMobilePlatform,
+  isNativePlatform,
+} from 'sentry/utils/platform';
 import {getReplayIdFromEvent} from 'sentry/utils/replays/getReplayIdFromEvent';
 import {useOrganization} from 'sentry/utils/useOrganization';
 import {MetricIssuesSection} from 'sentry/views/issueDetails/metricIssues/metricIssuesSection';
@@ -103,6 +108,10 @@ export function EventDetailsContent({
 }: Required<Pick<EventDetailsContentProps, 'group' | 'event' | 'project'>>) {
   const organization = useOrganization();
   const hasStreamlinedUI = useHasStreamlinedUI();
+  const shouldUseNewStackTrace =
+    organization.features.includes('issue-details-new-stack-trace') &&
+    // New stack trace is currently only non-native platforms.
+    !isNativePlatform(event.platform);
   const tagsRef = useRef<HTMLDivElement>(null);
   const eventEntries = useMemo(() => {
     const {entries = []} = event;
@@ -269,24 +278,42 @@ export function EventDetailsContent({
             >
               {defined(eventEntries[EntryType.EXCEPTION]) && (
                 <EntryErrorBoundary type={EntryType.EXCEPTION}>
-                  <Exception
-                    event={event}
-                    data={eventEntries[EntryType.EXCEPTION].data}
-                    projectSlug={project.slug}
-                    group={group}
-                    groupingCurrentLevel={groupingCurrentLevel}
-                  />
+                  {shouldUseNewStackTrace ? (
+                    <IssueStackTrace
+                      event={event}
+                      values={eventEntries[EntryType.EXCEPTION].data.values}
+                      projectSlug={project.slug}
+                      group={group}
+                    />
+                  ) : (
+                    <Exception
+                      event={event}
+                      data={eventEntries[EntryType.EXCEPTION].data}
+                      projectSlug={project.slug}
+                      group={group}
+                      groupingCurrentLevel={groupingCurrentLevel}
+                    />
+                  )}
                 </EntryErrorBoundary>
               )}
               {issueTypeConfig.stacktrace.enabled &&
                 defined(eventEntries[EntryType.STACKTRACE]) && (
                   <EntryErrorBoundary type={EntryType.STACKTRACE}>
-                    <StackTrace
-                      event={event}
-                      data={eventEntries[EntryType.STACKTRACE].data}
-                      projectSlug={projectSlug}
-                      groupingCurrentLevel={groupingCurrentLevel}
-                    />
+                    {shouldUseNewStackTrace ? (
+                      <IssueStackTrace
+                        event={event}
+                        stacktrace={eventEntries[EntryType.STACKTRACE].data}
+                        projectSlug={projectSlug}
+                        group={group}
+                      />
+                    ) : (
+                      <StackTrace
+                        event={event}
+                        data={eventEntries[EntryType.STACKTRACE].data}
+                        projectSlug={projectSlug}
+                        groupingCurrentLevel={groupingCurrentLevel}
+                      />
+                    )}
                   </EntryErrorBoundary>
                 )}
               {defined(eventEntries[EntryType.THREADS]) && (
