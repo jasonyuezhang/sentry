@@ -12,7 +12,10 @@ from urllib3 import BaseHTTPResponse, HTTPConnectionPool
 from urllib3.util.retry import Retry
 
 from sentry import features, options, ratelimits
-from sentry.constants import DataCategory
+from sentry.constants import (
+    SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT,
+    DataCategory,
+)
 from sentry.issues.auto_source_code_config.code_mapping import (
     get_sorted_code_mapping_configs,
 )
@@ -29,6 +32,10 @@ from sentry.seer.models import (
     SeerProjectPreference,
     SeerRawPreferenceResponse,
     SeerRepoDefinition,
+)
+from sentry.seer.models.project_repository import (
+    SeerProjectRepository,
+    SeerProjectRepositoryBranchOverride,
 )
 from sentry.seer.signed_seer_api import SeerViewerContext, make_signed_seer_api_request
 from sentry.utils.cache import cache
@@ -407,7 +414,111 @@ def get_project_seer_preferences(project_id: int) -> SeerRawPreferenceResponse:
     raise SeerApiError(response.data.decode("utf-8"), response.status)
 
 
-def set_project_seer_preference(preference: SeerProjectPreference) -> None:
+def write_preference_project_options(project: Project, preference: SeerProjectPreference) -> None:
+    project.update_option(
+        "sentry:seer_automated_run_stopping_point",
+        preference.automated_run_stopping_point or SEER_AUTOMATED_RUN_STOPPING_POINT_DEFAULT,
+    )
+
+    handoff = preference.automation_handoff
+    if handoff is not None:
+        project.update_option("sentry:seer_automation_handoff_point", handoff.handoff_point)
+        project.update_option("sentry:seer_automation_handoff_target", handoff.target)
+        project.update_option(
+            "sentry:seer_automation_handoff_integration_id", handoff.integration_id
+        )
+        project.update_option(
+            "sentry:seer_automation_handoff_auto_create_pr", handoff.auto_create_pr
+        )
+
+
+def _write_preferences_to_sentry_db(
+    project_preferences: list[tuple[Project, SeerProjectPreference]],
+) -> None:
+    """Write project preferences to ProjectOption + SeerProjectRepository.
+
+    Replaces all existing SeerProjectRepository rows for the given projects.
+    """
+    # Delete all existing SeerProjectRepository and SeerProjectRepositoryBranchOverride rows for the given projects
+    project_ids = {project.id for project, _ in project_preferences}
+    SeerProjectRepository.objects.filter(project_id__in=project_ids).delete()
+
+    # Write ProjectOptions and collect project repos to create
+    project_repos_to_create: list[SeerProjectRepository] = []
+    repo_defs: list[SeerRepoDefinition] = []
+    for project, pref in project_preferences:
+        write_preference_project_options(project, pref)
+
+        for repo_def in pref.repositories:
+            if repo_def.repository_id is None:
+                logger.warning(
+                    "seer.write_preference.repo_missing_id",
+                    extra={
+                        "project_id": project.id,
+                        "organization_id": project.organization_id,
+                        "external_id": repo_def.external_id,
+                    },
+                )
+                continue
+            project_repos_to_create.append(
+                SeerProjectRepository(
+                    project=project,
+                    repository_id=repo_def.repository_id,
+                    branch_name=repo_def.branch_name,
+                    instructions=repo_def.instructions,
+                )
+            )
+            repo_defs.append(repo_def)
+
+    # Create project repos
+    created_project_repos = SeerProjectRepository.objects.bulk_create(project_repos_to_create)
+
+    # Create branch overrides
+    overrides_to_create: list[SeerProjectRepositoryBranchOverride] = []
+    for seer_project_repo, repo_def in zip(created_project_repos, repo_defs):
+        for override in repo_def.branch_overrides:
+            overrides_to_create.append(
+                SeerProjectRepositoryBranchOverride(
+                    seer_project_repository=seer_project_repo,
+                    tag_name=override.tag_name,
+                    tag_value=override.tag_value,
+                    branch_name=override.branch_name,
+                )
+            )
+    SeerProjectRepositoryBranchOverride.objects.bulk_create(overrides_to_create)
+
+
+def write_preference_to_sentry_db(project: Project, preference: SeerProjectPreference) -> None:
+    """Write a single Seer project preference to ProjectOption and SeerProjectRepository."""
+    _write_preferences_to_sentry_db([(project, preference)])
+
+
+def bulk_write_preferences_to_sentry_db(
+    organization_id: int,
+    preferences: list[SeerProjectPreference],
+) -> None:
+    """Write multiple Seer project preferences using bulk operations."""
+    projects_by_id = {
+        p.id: p for p in Project.objects.filter(id__in=[pref.project_id for pref in preferences])
+    }
+
+    project_preferences: list[tuple[Project, SeerProjectPreference]] = []
+    for pref in preferences:
+        project = projects_by_id.get(pref.project_id)
+        if project is None:
+            logger.warning(
+                "seer.bulk_write_preference.project_not_found",
+                extra={"project_id": pref.project_id, "organization_id": organization_id},
+            )
+            continue
+        project_preferences.append((project, pref))
+
+    _write_preferences_to_sentry_db(project_preferences)
+
+
+def set_project_seer_preference(
+    preference: SeerProjectPreference, organization: Organization, project: Project
+) -> None:
     """Set Seer project preference for a single project."""
     response = make_set_project_preference_request(
         SetProjectPreferenceRequest(preference=preference.dict()),
@@ -416,6 +527,18 @@ def set_project_seer_preference(preference: SeerProjectPreference) -> None:
 
     if response.status >= 400:
         raise SeerApiError(response.data.decode("utf-8"), response.status)
+
+    if features.has("organizations:seer-project-settings-dual-write", organization):
+        try:
+            write_preference_to_sentry_db(project, preference)
+        except Exception:
+            logger.exception(
+                "seer.write_preference.dual_write_failed",
+                extra={
+                    "project_id": project.id,
+                    "organization_id": organization.id,
+                },
+            )
 
 
 def has_project_connected_repos(
@@ -479,20 +602,36 @@ def bulk_get_project_preferences(organization_id: int, project_ids: list[int]) -
     return result.get("preferences", {})
 
 
-def bulk_set_project_preferences(organization_id: int, preferences: list[dict]) -> None:
+def bulk_set_project_preferences(organization: Organization, preferences: list[dict]) -> None:
     """Bulk set Seer project preferences for multiple projects."""
     if not preferences:
         return
 
-    viewer_context = SeerViewerContext(organization_id=organization_id)
+    viewer_context = SeerViewerContext(organization_id=organization.id)
     response = make_bulk_set_project_preferences_request(
-        BulkSetProjectPreferencesRequest(organization_id=organization_id, preferences=preferences),
+        BulkSetProjectPreferencesRequest(organization_id=organization.id, preferences=preferences),
         timeout=15,
         viewer_context=viewer_context,
     )
 
     if response.status >= 400:
         raise SeerApiError(response.data.decode("utf-8"), response.status)
+
+    if features.has("organizations:seer-project-settings-dual-write", organization):
+        validated_preferences = []
+        for pref in preferences:
+            try:
+                validated_preferences.append(SeerProjectPreference.validate(pref))
+            except Exception:
+                logger.exception(
+                    "seer.bulk_write_preference.validation_failed",
+                    extra={
+                        "project_id": pref.get("project_id"),
+                        "organization_id": organization.id,
+                    },
+                )
+        if validated_preferences:
+            bulk_write_preferences_to_sentry_db(organization.id, validated_preferences)
 
 
 def get_autofix_repos_from_project_code_mappings(project: Project) -> list[dict]:
@@ -510,6 +649,7 @@ def get_autofix_repos_from_project_code_mappings(project: Project) -> list[dict]
         # We expect a repository name to be in the format of "owner/name" for now.
         if len(repo_name_sections) > 1 and repo.provider:
             repo_dict = {
+                "repository_id": repo.id,
                 "organization_id": repo.organization_id,
                 "integration_id": (
                     str(repo.integration_id) if repo.integration_id is not None else None
