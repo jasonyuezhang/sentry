@@ -980,6 +980,7 @@ const StyledReorderableFakeLink = styled(NavigationFakeLink)<{isDragging: boolea
     `}
 
   [data-reorderable-handle-slot] {
+    transform: scale(1);
     transition:
       opacity 150ms ease,
       transform 150ms ease;
