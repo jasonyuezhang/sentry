@@ -40,7 +40,6 @@ from sentry.constants import (
     DEFAULT_CODE_REVIEW_TRIGGERS,
     DEFAULT_SEER_SCANNER_AUTOMATION_DEFAULT,
     ENABLE_PR_REVIEW_TEST_GENERATION_DEFAULT,
-    ENABLE_SEER_CODING_DEFAULT,
     ENABLE_SEER_ENHANCED_ALERTS_DEFAULT,
     ENABLED_CONSOLE_PLATFORMS_DEFAULT,
     EVENTS_MEMBER_ADMIN_DEFAULT,
@@ -557,6 +556,8 @@ class DetailedOrganizationSerializerResponse(_DetailedOrganizationSerializerResp
     enablePrReviewTestGeneration: bool
     enableSeerEnhancedAlerts: bool
     enableSeerCoding: bool
+    defaultCodingAgent: str | None
+    defaultCodingAgentIntegrationId: int | None
     autoEnableCodeReview: bool
     autoOpenPrs: bool
     defaultCodeReviewTriggers: list[str]
@@ -733,8 +734,16 @@ class DetailedOrganizationSerializer(OrganizationSerializer):
             "enableSeerCoding": bool(
                 obj.get_option(
                     "sentry:enable_seer_coding",
-                    ENABLE_SEER_CODING_DEFAULT,
+                    None,
                 )
+            ),
+            "defaultCodingAgent": obj.get_option(
+                "sentry:default_coding_agent",
+                None,
+            ),
+            "defaultCodingAgentIntegrationId": obj.get_option(
+                "sentry:default_coding_agent_integration_id",
+                None,
             ),
             "autoOpenPrs": bool(
                 obj.get_option(
