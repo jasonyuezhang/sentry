@@ -906,7 +906,13 @@ const StyledGrabHandle = styled(Flex)`
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  translate: -50% -50%;
+  scale: 0.95;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 150ms ease,
+    scale 150ms ease;
   &:active {
     cursor: grabbing;
   }
@@ -954,21 +960,44 @@ const NavigationFakeLink = styled('div')<NavigationFakeLinkProps>`
 `;
 
 const StyledReorderableFakeLink = styled(NavigationFakeLink)<{isDragging: boolean}>`
-  :not(:hover):not(:has(:focus-visible)) {
+  :hover,
+  :has(:focus-visible) {
     [data-drag-icon] {
-      ${p => !p.isDragging && p.theme.visuallyHidden}
+      opacity: 1;
+      scale: 1;
+      pointer-events: auto;
     }
   }
 
-  :hover {
-    [data-reorderable-handle-slot] {
-      visibility: hidden;
-    }
-  }
+  ${p =>
+    p.isDragging &&
+    css`
+      [data-drag-icon] {
+        opacity: 1;
+        scale: 1;
+        pointer-events: auto;
+      }
+    `}
 
   [data-reorderable-handle-slot] {
-    ${p => p.isDragging && 'visibility: hidden;'}
+    transition:
+      opacity 150ms ease,
+      scale 150ms ease;
   }
+
+  :hover [data-reorderable-handle-slot] {
+    opacity: 0;
+    scale: 0.95;
+  }
+
+  ${p =>
+    p.isDragging &&
+    css`
+      [data-reorderable-handle-slot] {
+        opacity: 0;
+        scale: 0.95;
+      }
+    `}
 `;
 
 const SidebarNavigationLink = styled(Link)`
