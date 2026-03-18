@@ -910,6 +910,7 @@ const StyledGrabHandle = styled(Flex)`
   transform: translate(-50%, -50%) scale(0.95);
   opacity: 0;
   pointer-events: none;
+  z-index: 1;
   transition:
     opacity 150ms ease,
     transform 150ms ease;
@@ -975,7 +976,6 @@ const StyledReorderableFakeLink = styled(NavigationFakeLink)<{isDragging: boolea
       [data-drag-icon] {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1);
-        pointer-events: auto;
       }
     `}
 
