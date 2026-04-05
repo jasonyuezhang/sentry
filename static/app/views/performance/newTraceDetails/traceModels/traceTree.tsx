@@ -526,7 +526,7 @@ export class TraceTree extends TraceTreeEventDispatcher {
       }
 
       for (const occurrence of c.occurrences) {
-        traceNode.occurrences.add(occurrence);
+        traceNode.addOccurrence(occurrence);
       }
 
       if (c.value && 'measurements' in c.value) {
@@ -667,7 +667,7 @@ export class TraceTree extends TraceTreeEventDispatcher {
     }
 
     for (const occurrence of additionalTraceNode.occurrences) {
-      baseTraceNode.occurrences.add(occurrence);
+      baseTraceNode.addOccurrence(occurrence);
     }
 
     for (const profiledEvent of tree.profiled_events) {
@@ -1019,7 +1019,7 @@ export class TraceTree extends TraceTreeEventDispatcher {
 
             if (node.children[j]!.occurrences.size > 0) {
               for (const occurrence of node.children[j]!.occurrences) {
-                autoGroupedNode.occurrences.add(occurrence);
+                autoGroupedNode.addOccurrence(occurrence);
               }
             }
 
